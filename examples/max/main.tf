@@ -47,14 +47,23 @@ resource "azurerm_resource_group" "this" {
   name     = module.naming.resource_group.name_unique
 }
 
+data "azurerm_client_config" "current" {}
+
 # This is the module call
-# Do not specify location here due to the randomization above.
-# Leaving location as `null` will cause the module to use the resource group location
-# with a data source.
 module "test" {
-  source              = "../../"
-  name                = "krbartest001"
-  data_location       = "Europe"
+  source        = "../../"
+  name          = "krbartest001"
+  data_location = "Europe"
+  lock = {
+    kind = "CanNotDelete"
+    name = "CanNotDelete-lock"
+  }
+  role_assignments = {
+    deployment_user_reader = {
+      role_definition_id_or_name = "Reader"
+      principal_id               = data.azurerm_client_config.current.object_id
+    }
+  }
   resource_group_name = azurerm_resource_group.this.name
   enable_telemetry    = var.enable_telemetry # see variables.tf
 }
