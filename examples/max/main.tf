@@ -5,10 +5,6 @@ terraform {
       source  = "hashicorp/azurerm"
       version = "~> 3.74"
     }
-    modtm = {
-      source  = "azure/modtm"
-      version = "~> 0.3"
-    }
     random = {
       source  = "hashicorp/random"
       version = "~> 3.5"
@@ -64,6 +60,11 @@ module "test" {
       principal_id               = data.azurerm_client_config.current.object_id
     }
   }
+  tags = {
+    "hidden-title" = "This is visible in the resource name"
+    Env            = "test"
+  }
+
   resource_group_name = azurerm_resource_group.this.name
   enable_telemetry    = var.enable_telemetry # see variables.tf
 }

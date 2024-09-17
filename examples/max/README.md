@@ -1,7 +1,7 @@
 <!-- BEGIN_TF_DOCS -->
-# Default example
+# Using large parameter set example
 
-This deploys the module in its simplest form.
+This instance deploys the module with most of its features enabled.
 
 ```hcl
 terraform {
@@ -10,10 +10,6 @@ terraform {
     azurerm = {
       source  = "hashicorp/azurerm"
       version = "~> 3.74"
-    }
-    modtm = {
-      source  = "azure/modtm"
-      version = "~> 0.3"
     }
     random = {
       source  = "hashicorp/random"
@@ -53,14 +49,28 @@ resource "azurerm_resource_group" "this" {
   name     = module.naming.resource_group.name_unique
 }
 
+data "azurerm_client_config" "current" {}
+
 # This is the module call
-# Do not specify location here due to the randomization above.
-# Leaving location as `null` will cause the module to use the resource group location
-# with a data source.
 module "test" {
-  source              = "../../"
-  name                = "krbartest001"
-  data_location       = "Europe"
+  source        = "../../"
+  name          = "krbartest001"
+  data_location = "Europe"
+  lock = {
+    kind = "CanNotDelete"
+    name = "CanNotDelete-lock"
+  }
+  role_assignments = {
+    deployment_user_reader = {
+      role_definition_id_or_name = "Reader"
+      principal_id               = data.azurerm_client_config.current.object_id
+    }
+  }
+  tags = {
+    "hidden-title" = "This is visible in the resource name"
+    Env            = "test"
+  }
+
   resource_group_name = azurerm_resource_group.this.name
   enable_telemetry    = var.enable_telemetry # see variables.tf
 }
@@ -75,8 +85,6 @@ The following requirements are needed by this module:
 
 - <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (~> 3.74)
 
-- <a name="requirement_modtm"></a> [modtm](#requirement\_modtm) (~> 0.3)
-
 - <a name="requirement_random"></a> [random](#requirement\_random) (~> 3.5)
 
 ## Resources
@@ -85,6 +93,7 @@ The following resources are used by this module:
 
 - [azurerm_resource_group.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/resource_group) (resource)
 - [random_integer.region_index](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/integer) (resource)
+- [azurerm_client_config.current](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/client_config) (data source)
 
 <!-- markdownlint-disable MD013 -->
 ## Required Inputs
