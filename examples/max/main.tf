@@ -45,11 +45,13 @@ resource "azurerm_resource_group" "this" {
 
 data "azurerm_client_config" "current" {}
 
+resource "random_pet" "pet" {}
+
 # This is the module call
 module "test" {
   source        = "../../"
-  name          = "krbartest001"
-  data_location = "Europe"
+  name          = "emailsvc-${random_pet.pet.id}"
+  data_location = "United States"
   lock = {
     kind = "CanNotDelete"
     name = "CanNotDelete-lock"
@@ -63,6 +65,26 @@ module "test" {
   tags = {
     "hidden-title" = "This is visible in the resource name"
     Env            = "test"
+  }
+
+  domains = {
+    domain0 = {
+      name                             = "AzureManagedDomain"
+      domain_management                = "AzureManaged"
+      user_engagement_tracking_enabled = true
+      lock = {
+        kind = "CanNotDelete"
+      }
+      role_assignments = {
+        deployment_user_reader = {
+          role_definition_id_or_name = "Reader"
+          principal_id               = data.azurerm_client_config.current.object_id
+        }
+      }
+      tags = {
+        Role = "DeploymentValidation"
+      }
+    }
   }
 
   resource_group_name = azurerm_resource_group.this.name

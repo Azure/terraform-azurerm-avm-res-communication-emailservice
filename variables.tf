@@ -31,6 +31,43 @@ variable "resource_group_name" {
   description = "The resource group where the resources will be deployed."
 }
 
+variable "domains" {
+  type = map(object({
+    name                             = string
+    domain_management                = optional(string, null)
+    user_engagement_tracking_enabled = optional(bool, false)
+    tags                             = optional(map(any), null)
+
+    lock = optional(object({
+      kind = string
+      name = optional(string, null)
+    }), null)
+
+    role_assignments = optional(map(object({
+      role_definition_id_or_name             = string
+      principal_id                           = string
+      description                            = optional(string, null)
+      skip_service_principal_aad_check       = optional(bool, false)
+      condition                              = optional(string, null)
+      condition_version                      = optional(string, null)
+      delegated_managed_identity_resource_id = optional(string, null)
+      principal_type                         = optional(string, null)
+    })), {})
+  }))
+  default     = {}
+  description = <<DESCRIPTION
+A map of domains to create on the Email Communication Service. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time.
+
+- `name` - The name of the domain.
+- `domain_management` - (Optional) Describes how the domain resource is being managed.
+- `user_engagement_tracking_enabled` - (Optional) Describes whether user engagement tracking is enabled or disabled.
+- `lock` - (Optional) The lock level to apply to the domain. Default is `None`. Possible values are `None`, `CanNotDelete`, and `ReadOnly`.
+- `role_assignments` - (Optional) A map of role assignments to create on the domain. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time. See `var.role_assignments` for more information.
+- `tags` - (Optional) A mapping of tags to assign to the domain.
+DESCRIPTION
+  nullable    = false
+}
+
 variable "enable_telemetry" {
   type        = bool
   default     = true
