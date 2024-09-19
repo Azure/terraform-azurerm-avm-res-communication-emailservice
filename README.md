@@ -198,6 +198,10 @@ Default: `null`
 
 The following outputs are exported:
 
+### <a name="output_domains"></a> [domains](#output\_domains)
+
+Description: A map of domains.
+
 ### <a name="output_name"></a> [name](#output\_name)
 
 Description: Name of the Email Communication Service

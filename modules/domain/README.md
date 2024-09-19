@@ -139,6 +139,14 @@ Default: `false`
 
 The following outputs are exported:
 
+### <a name="output_from_sender_domain"></a> [from\_sender\_domain](#output\_from\_sender\_domain)
+
+Description: P2 sender domain that is displayed to the email recipients [RFC 5322].
+
+### <a name="output_mail_from_sender_domain"></a> [mail\_from\_sender\_domain](#output\_mail\_from\_sender\_domain)
+
+Description: P1 sender domain that is present on the email envelope [RFC 5321].
+
 ### <a name="output_name"></a> [name](#output\_name)
 
 Description: The name of the domain
@@ -146,6 +154,10 @@ Description: The name of the domain
 ### <a name="output_resource_id"></a> [resource\_id](#output\_resource\_id)
 
 Description: The Azure resource id of the domain.
+
+### <a name="output_verification_records"></a> [verification\_records](#output\_verification\_records)
+
+Description: Verification records for the domain.
 
 ## Modules
 
