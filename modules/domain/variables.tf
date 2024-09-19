@@ -80,6 +80,23 @@ variable "role_assignments" {
   nullable    = false
 }
 
+variable "sender_usernames" {
+  type = map(object({
+    name         = string
+    username     = string
+    display_name = optional(string, null)
+  }))
+  default     = {}
+  description = <<DESCRIPTION
+A map of sender usernames to create on the Email Communication Service Domain. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time.
+
+- `name` - The name of the domain.
+- `username` - The sender username to be used when sending emails.
+- `display_name` - (Optional) The display name for the sender Username.
+DESCRIPTION
+  nullable    = false
+}
+
 # tflint-ignore: terraform_unused_declarations
 variable "tags" {
   type        = map(string)

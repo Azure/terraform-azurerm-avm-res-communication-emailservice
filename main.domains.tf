@@ -6,6 +6,7 @@ module "domains" {
   name                             = each.value.name
   domain_management                = each.value.domain_management
   user_engagement_tracking_enabled = each.value.user_engagement_tracking_enabled
+  sender_usernames                 = each.value.sender_usernames
   lock                             = each.value.lock
   role_assignments                 = each.value.role_assignments
   tags                             = each.value.tags

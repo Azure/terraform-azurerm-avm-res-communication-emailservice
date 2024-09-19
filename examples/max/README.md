@@ -90,6 +90,17 @@ module "test" {
       tags = {
         Role = "DeploymentValidation"
       }
+      sender_usernames = {
+        sender_username0 = {
+          name     = "notifications"
+          username = "Notifications"
+        }
+        sender_username1 = {
+          name         = "customerservice"
+          username     = "CustomerService"
+          display_name = "Customer Service"
+        }
+      }
     }
   }
 

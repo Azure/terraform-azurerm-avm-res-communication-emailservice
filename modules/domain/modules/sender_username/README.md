@@ -99,26 +99,6 @@ map(object({
 
 Default: `{}`
 
-### <a name="input_sender_usernames"></a> [sender\_usernames](#input\_sender\_usernames)
-
-Description: A map of sender usernames to create on the Email Communication Service Domain. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time.
-
-- `name` - The name of the domain.
-- `username` - The sender username to be used when sending emails.
-- `display_name` - (Optional) The display name for the sender Username.
-
-Type:
-
-```hcl
-map(object({
-    name         = string
-    username     = string
-    display_name = optional(string, null)
-  }))
-```
-
-Default: `{}`
-
 ### <a name="input_tags"></a> [tags](#input\_tags)
 
 Description: (Optional) Tags of the Email Communication Service Domain.
@@ -149,13 +129,7 @@ Description: The Azure resource id of the domain.
 
 ## Modules
 
-The following Modules are called:
-
-### <a name="module_sender_usernames"></a> [sender\_usernames](#module\_sender\_usernames)
-
-Source: ./modules/sender_username
-
-Version:
+No modules.
 
 <!-- markdownlint-disable-next-line MD041 -->
 ## Data Collection

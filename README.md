@@ -82,6 +82,12 @@ map(object({
     user_engagement_tracking_enabled = optional(bool, false)
     tags                             = optional(map(any), null)
 
+    sender_usernames = optional(map(object({
+      name         = string
+      username     = string
+      display_name = optional(string, null)
+    })), {})
+
     lock = optional(object({
       kind = string
       name = optional(string, null)
