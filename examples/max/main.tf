@@ -52,10 +52,6 @@ module "test" {
   source        = "../../"
   name          = "emailsvc-${random_pet.pet.id}"
   data_location = "United States"
-  lock = {
-    kind = "CanNotDelete"
-    name = "CanNotDelete-lock"
-  }
   role_assignments = {
     deployment_user_reader = {
       role_definition_id_or_name = "Reader"
@@ -72,9 +68,6 @@ module "test" {
       name                             = "AzureManagedDomain"
       domain_management                = "AzureManaged"
       user_engagement_tracking_enabled = true
-      lock = {
-        kind = "CanNotDelete"
-      }
       role_assignments = {
         deployment_user_reader = {
           role_definition_id_or_name = "Reader"
