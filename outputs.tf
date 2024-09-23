@@ -11,7 +11,7 @@ output "domains" {
 }
 
 output "name" {
-  description = "Name of the Email Communication Service"
+  description = "Name of the Email Communication Service."
   value       = azurerm_email_communication_service.this.name
 }
 

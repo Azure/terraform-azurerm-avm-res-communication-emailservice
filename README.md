@@ -204,7 +204,7 @@ Description: A map of domains.
 
 ### <a name="output_name"></a> [name](#output\_name)
 
-Description: Name of the Email Communication Service
+Description: Name of the Email Communication Service.
 
 ### <a name="output_resource_id"></a> [resource\_id](#output\_resource\_id)
 
