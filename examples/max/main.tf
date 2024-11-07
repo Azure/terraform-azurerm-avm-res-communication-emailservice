@@ -43,13 +43,54 @@ resource "azurerm_resource_group" "this" {
   name     = module.naming.resource_group.name_unique
 }
 
+data "azurerm_client_config" "current" {}
+
 resource "random_pet" "pet" {}
 
 # This is the module call
 module "test" {
-  source              = "../../"
-  name                = "emailsvc-${random_pet.pet.id}"
-  data_location       = "Europe"
+  source        = "../../"
+  name          = "emailsvc-${random_pet.pet.id}"
+  data_location = "United States"
+  role_assignments = {
+    deployment_user_reader = {
+      role_definition_id_or_name = "Reader"
+      principal_id               = data.azurerm_client_config.current.object_id
+    }
+  }
+  tags = {
+    "hidden-title" = "This is visible in the resource name"
+    Env            = "test"
+  }
+
+  domains = {
+    domain0 = {
+      name                             = "AzureManagedDomain"
+      domain_management                = "AzureManaged"
+      user_engagement_tracking_enabled = true
+      role_assignments = {
+        deployment_user_reader = {
+          role_definition_id_or_name = "Reader"
+          principal_id               = data.azurerm_client_config.current.object_id
+        }
+      }
+      tags = {
+        Role = "DeploymentValidation"
+      }
+      sender_usernames = {
+        sender_username0 = {
+          name     = "notifications"
+          username = "Notifications"
+        }
+        sender_username1 = {
+          name         = "customerservice"
+          username     = "CustomerService"
+          display_name = "Customer Service"
+        }
+      }
+    }
+  }
+
   resource_group_name = azurerm_resource_group.this.name
   enable_telemetry    = var.enable_telemetry # see variables.tf
 }

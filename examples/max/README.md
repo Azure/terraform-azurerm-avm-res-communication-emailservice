@@ -1,7 +1,7 @@
 <!-- BEGIN_TF_DOCS -->
-# Default example
+# Using large parameter set example
 
-This deploys the module in its simplest form.
+This instance deploys the module with most of its features enabled.
 
 ```hcl
 terraform {
@@ -49,13 +49,54 @@ resource "azurerm_resource_group" "this" {
   name     = module.naming.resource_group.name_unique
 }
 
+data "azurerm_client_config" "current" {}
+
 resource "random_pet" "pet" {}
 
 # This is the module call
 module "test" {
-  source              = "../../"
-  name                = "emailsvc-${random_pet.pet.id}"
-  data_location       = "Europe"
+  source        = "../../"
+  name          = "emailsvc-${random_pet.pet.id}"
+  data_location = "United States"
+  role_assignments = {
+    deployment_user_reader = {
+      role_definition_id_or_name = "Reader"
+      principal_id               = data.azurerm_client_config.current.object_id
+    }
+  }
+  tags = {
+    "hidden-title" = "This is visible in the resource name"
+    Env            = "test"
+  }
+
+  domains = {
+    domain0 = {
+      name                             = "AzureManagedDomain"
+      domain_management                = "AzureManaged"
+      user_engagement_tracking_enabled = true
+      role_assignments = {
+        deployment_user_reader = {
+          role_definition_id_or_name = "Reader"
+          principal_id               = data.azurerm_client_config.current.object_id
+        }
+      }
+      tags = {
+        Role = "DeploymentValidation"
+      }
+      sender_usernames = {
+        sender_username0 = {
+          name     = "notifications"
+          username = "Notifications"
+        }
+        sender_username1 = {
+          name         = "customerservice"
+          username     = "CustomerService"
+          display_name = "Customer Service"
+        }
+      }
+    }
+  }
+
   resource_group_name = azurerm_resource_group.this.name
   enable_telemetry    = var.enable_telemetry # see variables.tf
 }
@@ -79,6 +120,7 @@ The following resources are used by this module:
 - [azurerm_resource_group.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/resource_group) (resource)
 - [random_integer.region_index](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/integer) (resource)
 - [random_pet.pet](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/pet) (resource)
+- [azurerm_client_config.current](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/client_config) (data source)
 
 <!-- markdownlint-disable MD013 -->
 ## Required Inputs
