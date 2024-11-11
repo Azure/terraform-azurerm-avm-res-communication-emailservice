@@ -1,6 +1,21 @@
-output "private_endpoints" {
-  description = <<DESCRIPTION
-  A map of the private endpoints created.
-  DESCRIPTION
-  value       = var.private_endpoints_manage_dns_zone_group ? azurerm_private_endpoint.this_managed_dns_zone_groups : azurerm_private_endpoint.this_unmanaged_dns_zone_groups
+output "domains" {
+  description = "A map of domains."
+  value = { for dk, dv in module.domains : dk => {
+    name                    = dv.name
+    mail_from_sender_domain = dv.mail_from_sender_domain
+    from_sender_domain      = dv.from_sender_domain
+    resource_id             = dv.resource_id
+    verification_records    = dv.verification_records
+    }
+  }
+}
+
+output "name" {
+  description = "Name of the Email Communication Service."
+  value       = azurerm_email_communication_service.this.name
+}
+
+output "resource_id" {
+  description = "The Azure resource id of the Email Communication Service."
+  value       = azurerm_email_communication_service.this.id
 }
