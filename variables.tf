@@ -1,19 +1,13 @@
+variable "data_location" {
+  type        = string
+  description = "(Required) The location where the Email Communication service stores its data at rest. Possible values are `Africa`, `Asia Pacific`, `Australia`, `Brazil`, `Canada`, `Europe`, `France`, `Germany`, `India`, `Japan`, `Korea`, `Norway`, `Switzerland`, `UAE`, `UK` `usgov` and `United States`. Changing this forces a new resource to be created."
+  nullable    = false
+}
+
 variable "location" {
   type        = string
   description = "(Required) Azure region where the resource should be deployed. Changing this forces a new resource to be created."
   nullable    = false
-}
-
-variable "resource_group_name" {
-  type        = string
-  description = "(Required) The resource group where the resources will be deployed. Changing this forces a new resource to be created."
-  nullable    = false
-}
-
-variable "tags" {
-  type        = map(string)
-  default     = null
-  description = "(Optional) A mapping of tags which should be assigned to the Resource Group."
 }
 
 variable "name" {
@@ -22,9 +16,9 @@ variable "name" {
   nullable    = false
 }
 
-variable "data_location" {
+variable "resource_group_name" {
   type        = string
-  description = "(Required) The location where the Email Communication service stores its data at rest. Possible values are `Africa`, `Asia Pacific`, `Australia`, `Brazil`, `Canada`, `Europe`, `France`, `Germany`, `India`, `Japan`, `Korea`, `Norway`, `Switzerland`, `UAE`, `UK` `usgov` and `United States`. Changing this forces a new resource to be created."
+  description = "(Required) The resource group where the resources will be deployed. Changing this forces a new resource to be created."
   nullable    = false
 }
 
@@ -88,4 +82,10 @@ A map of role assignments to create on this resource. The map key is deliberatel
 > Note: only set `skip_service_principal_aad_check` to true if you are assigning a role to a service principal.
 DESCRIPTION
   nullable    = false
+}
+
+variable "tags" {
+  type        = map(string)
+  default     = null
+  description = "(Optional) A mapping of tags which should be assigned to the Resource Group."
 }
