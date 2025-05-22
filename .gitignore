@@ -48,3 +48,6 @@ avm.tflint_module.merged.hcl
 # MacOS
 .DS_Store
 examples/*/policy
+# intermediate pla files for conftest
+**/tfplan.binary
+**/tfplan.json
