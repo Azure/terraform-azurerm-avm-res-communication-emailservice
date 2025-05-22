@@ -67,6 +67,7 @@ variable "role_assignments" {
     condition                              = optional(string, null)
     condition_version                      = optional(string, null)
     delegated_managed_identity_resource_id = optional(string, null)
+    principal_type                         = optional(string, null)
   }))
   default     = {}
   description = <<DESCRIPTION
@@ -78,6 +79,8 @@ A map of role assignments to create on this resource. The map key is deliberatel
 - `skip_service_principal_aad_check` - If set to true, skips the Azure Active Directory check for the service principal in the tenant. Defaults to false.
 - `condition` - The condition which will be used to scope the role assignment.
 - `condition_version` - The version of the condition syntax. Valid values are '2.0'.
+- `delegated_managed_identity_resource_id` - The ID of the delegated managed identity.
+- `principal_type` - The type of the principal.
 
 > Note: only set `skip_service_principal_aad_check` to true if you are assigning a role to a service principal.
 DESCRIPTION
