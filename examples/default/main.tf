@@ -1,9 +1,9 @@
 terraform {
-  required_version = "~> 1.5"
+  required_version = "~> 1.11"
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "~> 3.74"
+      version = "~> 4.29"
     }
     modtm = {
       source  = "azure/modtm"
@@ -11,7 +11,7 @@ terraform {
     }
     random = {
       source  = "hashicorp/random"
-      version = "~> 3.5"
+      version = "~> 3.7"
     }
   }
 }
@@ -20,12 +20,11 @@ provider "azurerm" {
   features {}
 }
 
-
 ## Section to provide a random Azure region for the resource group
 # This allows us to randomize the region for the resource group.
 module "regions" {
   source  = "Azure/avm-utl-regions/azurerm"
-  version = "~> 0.1"
+  version = "~> 0.5"
 }
 
 # This allows us to randomize the region for the resource group.
@@ -38,13 +37,7 @@ resource "random_integer" "region_index" {
 # This ensures we have unique CAF compliant names for our resources.
 module "naming" {
   source  = "Azure/naming/azurerm"
-  version = "~> 0.3"
-}
-
-# This is required for resource modules
-resource "azurerm_resource_group" "this" {
-  location = module.regions.regions[random_integer.region_index.result].name
-  name     = module.naming.resource_group.name_unique
+  version = "~> 0.4"
 }
 
 # This is the module call
@@ -53,11 +46,11 @@ resource "azurerm_resource_group" "this" {
 # with a data source.
 module "test" {
   source = "../../"
-  # source             = "Azure/avm-<res/ptn>-<name>/azurerm"
-  # ...
-  location            = azurerm_resource_group.this.location
-  name                = "TODO" # TODO update with module.naming.<RESOURCE_TYPE>.name_unique
-  resource_group_name = azurerm_resource_group.this.name
+  # source              = "Azure/avm-res-communication-emailservice"
+  location            = module.regions.regions[random_integer.region_index.result].name
+  name                = module.naming.emailservice.name_unique
+  resource_group_name = module.naming.resource_group.name_unique
+  data_location       = "United States"
 
   enable_telemetry = var.enable_telemetry # see variables.tf
 }
