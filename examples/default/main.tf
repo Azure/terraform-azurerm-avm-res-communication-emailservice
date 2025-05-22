@@ -5,10 +5,6 @@ terraform {
       source  = "hashicorp/azurerm"
       version = "~> 4.29"
     }
-    modtm = {
-      source  = "azure/modtm"
-      version = "~> 0.3"
-    }
     random = {
       source  = "hashicorp/random"
       version = "~> 3.7"
@@ -40,6 +36,14 @@ module "naming" {
   version = "~> 0.4"
 }
 
+resource "random_string" "name_suffix" {
+  length  = 5
+  upper   = true
+  lower   = true
+  numeric = false
+  special = false
+}
+
 # This is the module call
 # Do not specify location here due to the randomization above.
 # Leaving location as `null` will cause the module to use the resource group location
@@ -48,7 +52,7 @@ module "test" {
   source = "../../"
   # source              = "Azure/avm-res-communication-emailservice"
   location            = module.regions.regions[random_integer.region_index.result].name
-  name                = module.naming.emailservice.name_unique
+  name                = "email-communication-service-${random_string.name_suffix.id}"
   resource_group_name = module.naming.resource_group.name_unique
   data_location       = "United States"
 

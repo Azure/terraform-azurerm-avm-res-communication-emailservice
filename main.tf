@@ -34,7 +34,7 @@ resource "azapi_resource" "emailCommunicationService" {
       dataLocation = var.data_location
     }
   }
-  location = azurerm_resource_group.this.location
+  location = "global"
   name     = var.name
   tags     = var.email_communication_service_tags
 }
