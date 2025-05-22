@@ -1,9 +1,9 @@
-output "email_communication_service" {
+output "resource" {
   description = "The resource of email communication service"
   value       = azapi_resource.emailCommunicationService
 }
 
-output "email_communication_service_id" {
+output "resource_id" {
   description = "The resource ID of email communication service"
   value       = azapi_resource.emailCommunicationService.id
 }
