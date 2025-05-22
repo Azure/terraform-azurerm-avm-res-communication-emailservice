@@ -1,23 +1,19 @@
 <!-- BEGIN_TF_DOCS -->
 # Default example
 
-This deploys the module in its simplest form.
+This deploys the Email Communication Service.
 
 ```hcl
 terraform {
-  required_version = "~> 1.5"
+  required_version = "~> 1.11"
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "~> 3.74"
-    }
-    modtm = {
-      source  = "azure/modtm"
-      version = "~> 0.3"
+      version = "~> 4.29"
     }
     random = {
       source  = "hashicorp/random"
-      version = "~> 3.5"
+      version = "~> 3.7"
     }
   }
 }
@@ -26,12 +22,11 @@ provider "azurerm" {
   features {}
 }
 
-
 ## Section to provide a random Azure region for the resource group
 # This allows us to randomize the region for the resource group.
 module "regions" {
   source  = "Azure/avm-utl-regions/azurerm"
-  version = "~> 0.1"
+  version = "~> 0.5"
 }
 
 # This allows us to randomize the region for the resource group.
@@ -44,13 +39,15 @@ resource "random_integer" "region_index" {
 # This ensures we have unique CAF compliant names for our resources.
 module "naming" {
   source  = "Azure/naming/azurerm"
-  version = "~> 0.3"
+  version = "~> 0.4"
 }
 
-# This is required for resource modules
-resource "azurerm_resource_group" "this" {
-  location = module.regions.regions[random_integer.region_index.result].name
-  name     = module.naming.resource_group.name_unique
+resource "random_string" "name_suffix" {
+  length  = 5
+  lower   = true
+  numeric = false
+  special = false
+  upper   = true
 }
 
 # This is the module call
@@ -59,13 +56,13 @@ resource "azurerm_resource_group" "this" {
 # with a data source.
 module "test" {
   source = "../../"
-  # source             = "Azure/avm-<res/ptn>-<name>/azurerm"
-  # ...
-  location            = azurerm_resource_group.this.location
-  name                = "TODO" # TODO update with module.naming.<RESOURCE_TYPE>.name_unique
-  resource_group_name = azurerm_resource_group.this.name
 
-  enable_telemetry = var.enable_telemetry # see variables.tf
+  data_location = "United States"
+  # source              = "Azure/avm-res-communication-emailservice"
+  location            = module.regions.regions[random_integer.region_index.result].name
+  name                = "email-communication-service-${random_string.name_suffix.id}"
+  resource_group_name = module.naming.resource_group.name_unique
+  enable_telemetry    = var.enable_telemetry # see variables.tf
 }
 ```
 
@@ -74,20 +71,18 @@ module "test" {
 
 The following requirements are needed by this module:
 
-- <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (~> 1.5)
+- <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (~> 1.11)
 
-- <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (~> 3.74)
+- <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (~> 4.29)
 
-- <a name="requirement_modtm"></a> [modtm](#requirement\_modtm) (~> 0.3)
-
-- <a name="requirement_random"></a> [random](#requirement\_random) (~> 3.5)
+- <a name="requirement_random"></a> [random](#requirement\_random) (~> 3.7)
 
 ## Resources
 
 The following resources are used by this module:
 
-- [azurerm_resource_group.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/resource_group) (resource)
 - [random_integer.region_index](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/integer) (resource)
+- [random_string.name_suffix](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/string) (resource)
 
 <!-- markdownlint-disable MD013 -->
 ## Required Inputs
@@ -120,13 +115,13 @@ The following Modules are called:
 
 Source: Azure/naming/azurerm
 
-Version: ~> 0.3
+Version: ~> 0.4
 
 ### <a name="module_regions"></a> [regions](#module\_regions)
 
 Source: Azure/avm-utl-regions/azurerm
 
-Version: ~> 0.1
+Version: ~> 0.5
 
 ### <a name="module_test"></a> [test](#module\_test)
 

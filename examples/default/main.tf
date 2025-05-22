@@ -38,10 +38,10 @@ module "naming" {
 
 resource "random_string" "name_suffix" {
   length  = 5
-  upper   = true
   lower   = true
   numeric = false
   special = false
+  upper   = true
 }
 
 # This is the module call
@@ -50,11 +50,11 @@ resource "random_string" "name_suffix" {
 # with a data source.
 module "test" {
   source = "../../"
+
+  data_location = "United States"
   # source              = "Azure/avm-res-communication-emailservice"
   location            = module.regions.regions[random_integer.region_index.result].name
   name                = "email-communication-service-${random_string.name_suffix.id}"
   resource_group_name = module.naming.resource_group.name_unique
-  data_location       = "United States"
-
-  enable_telemetry = var.enable_telemetry # see variables.tf
+  enable_telemetry    = var.enable_telemetry # see variables.tf
 }

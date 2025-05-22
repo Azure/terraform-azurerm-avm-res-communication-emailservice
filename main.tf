@@ -27,14 +27,14 @@ resource "azurerm_role_assignment" "this" {
 }
 
 resource "azapi_resource" "emailCommunicationService" {
-  type      = "Microsoft.Communication/emailServices@2023-03-31"
-  parent_id = azurerm_resource_group.this.id
+  type = "Microsoft.Communication/emailServices@2023-03-31"
   body = {
     properties = {
       dataLocation = var.data_location
     }
   }
-  location = "global"
-  name     = var.name
-  tags     = var.email_communication_service_tags
+  location  = "global"
+  name      = var.name
+  parent_id = azurerm_resource_group.this.id
+  tags      = var.email_communication_service_tags
 }
