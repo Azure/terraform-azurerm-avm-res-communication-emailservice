@@ -30,6 +30,7 @@ The following requirements are needed by this module:
 The following resources are used by this module:
 
 - [azapi_resource.email_communication_service](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) (resource)
+- [azapi_resource.email_communication_service_domain](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) (resource)
 - [azurerm_management_lock.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/management_lock) (resource)
 - [azurerm_resource_group.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/resource_group) (resource)
 - [azurerm_role_assignment.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment) (resource)
@@ -70,6 +71,28 @@ Type: `string`
 ## Optional Inputs
 
 The following input variables are optional (have default values):
+
+### <a name="input_email_communication_service_domains"></a> [email\_communication\_service\_domains](#input\_email\_communication\_service\_domains)
+
+Description: A map of Email Communication Service Domains to create on Email Communcation Service.
+
+- `email_communication_service_domain_name` - The name of the Email Communication Service Domain resource. If `domain_management` is `AzureManaged`, the name must be `AzureManagedDomain`. Changing this forces a new resource to be created.
+- `domain_management` - Describes how a Email Communication Service Domain resource is being managed. Possible values are `AzureManaged`, `CustomerManaged`, `CustomerManagedInExchangeOnline`. Changing this forces a new resource to be created.
+- `user_engagement_tracking_enabled` - Describes user engagement tracking is enabled or disabled. Defaults to `false`.
+- `email_communication_service_domain_tags` - A mapping of tags which should be assigned to the Email Communication Service Domain.
+
+Type:
+
+```hcl
+map(object({
+    email_communication_service_domain_name = string
+    domain_management                       = string
+    user_engagement_tracking_enabled        = optional(bool, false)
+    email_communication_service_domain_tags = optional(map(string), null)
+  }))
+```
+
+Default: `{}`
 
 ### <a name="input_email_communication_service_tags"></a> [email\_communication\_service\_tags](#input\_email\_communication\_service\_tags)
 
