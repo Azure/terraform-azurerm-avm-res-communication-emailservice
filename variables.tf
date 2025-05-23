@@ -22,6 +22,26 @@ variable "resource_group_name" {
   nullable    = false
 }
 
+variable "email_communication_service_domains" {
+  type = map(object({
+    email_communication_service_domain_name = string
+    domain_management                       = string
+    user_engagement_tracking_enabled        = optional(bool, false)
+    email_communication_service_domain_tags = optional(map(string), null)
+  }))
+  default     = {}
+  description = <<DESCRIPTION
+A map of Email Communication Service Domains to create on Email Communcation Service.
+
+- `email_communication_service_domain_name` - The name of the Email Communication Service Domain resource. If `domain_management` is `AzureManaged`, the name must be `AzureManagedDomain`. Changing this forces a new resource to be created.
+- `domain_management` - Describes how a Email Communication Service Domain resource is being managed. Possible values are `AzureManaged`, `CustomerManaged`, `CustomerManagedInExchangeOnline`. Changing this forces a new resource to be created.
+- `user_engagement_tracking_enabled` - Describes user engagement tracking is enabled or disabled. Defaults to `false`.
+- `email_communication_service_domain_tags` - A mapping of tags which should be assigned to the Email Communication Service Domain.
+
+DESCRIPTION
+  nullable    = false
+}
+
 variable "email_communication_service_tags" {
   type        = map(string)
   default     = null
@@ -83,26 +103,6 @@ A map of role assignments to create on this resource. The map key is deliberatel
 - `principal_type` - The type of the principal_id. Possible values are `User`, `Group` and `ServicePrincipal`. Changing this forces a new resource to be created. It is necessary to explicitly set this attribute when creating role assignments if the principal creating the assignment is constrained by ABAC rules that filters on the PrincipalType attribute.
 
 > Note: only set `skip_service_principal_aad_check` to true if you are assigning a role to a service principal.
-DESCRIPTION
-  nullable    = false
-}
-
-variable "email_communication_service_domains" {
-  type = map(object({
-    email_communication_service_domain_name = string
-    domain_management                       = string
-    user_engagement_tracking_enabled        = optional(bool, false)
-    email_communication_service_domain_tags = optional(map(string), null)
-  }))
-  default     = {}
-  description = <<DESCRIPTION
-A map of Email Communication Service Domains to create on Email Communcation Service.
-
-- `email_communication_service_domain_name` - The name of the Email Communication Service Domain resource. If `domain_management` is `AzureManaged`, the name must be `AzureManagedDomain`. Changing this forces a new resource to be created.
-- `domain_management` - Describes how a Email Communication Service Domain resource is being managed. Possible values are `AzureManaged`, `CustomerManaged`, `CustomerManagedInExchangeOnline`. Changing this forces a new resource to be created.
-- `user_engagement_tracking_enabled` - Describes user engagement tracking is enabled or disabled. Defaults to `false`.
-- `email_communication_service_domain_tags` - A mapping of tags which should be assigned to the Email Communication Service Domain.
-
 DESCRIPTION
   nullable    = false
 }
