@@ -28,44 +28,44 @@ resource "azurerm_role_assignment" "this" {
 }
 
 resource "azapi_resource" "email_communication_service" {
-  type      = "Microsoft.Communication/emailServices@2023-03-31"
-  parent_id = azurerm_resource_group.this.id
-  name      = var.name
-  location  = "global"
+  type = "Microsoft.Communication/emailServices@2023-03-31"
   body = {
     properties = {
       dataLocation = var.data_location
     }
   }
-  tags = var.email_communication_service_tags
+  location  = "global"
+  name      = var.name
+  parent_id = azurerm_resource_group.this.id
+  tags      = var.email_communication_service_tags
 }
 
 resource "azapi_resource" "email_communication_service_domain" {
   for_each = var.email_communication_service_domains
 
-  type      = "Microsoft.Communication/emailServices/domains@2023-03-31"
-  parent_id = azapi_resource.email_communication_service.id
-  name      = each.value.email_communication_service_domain_name
-  location  = "global"
+  type = "Microsoft.Communication/emailServices/domains@2023-03-31"
   body = {
     properties = {
       domainManagement       = each.value.domain_management
       userEngagementTracking = each.value.user_engagement_tracking_enabled ? "Enabled" : "Disabled"
     }
   }
-  tags = each.value.email_communication_service_domain_tags
+  location  = "global"
+  name      = each.value.email_communication_service_domain_name
+  parent_id = azapi_resource.email_communication_service.id
+  tags      = each.value.email_communication_service_domain_tags
 }
 
 resource "azapi_resource" "email_communication_service_domain_sender_username" {
   for_each = var.email_communication_service_domain_sender_usernames
 
-  type      = "Microsoft.Communication/emailServices/domains/senderUsernames@2023-03-31"
-  parent_id = azapi_resource.email_communication_service_domain[each.value.email_communication_service_domain_name_key].id
-  name      = each.value.email_communication_service_domain_sender_username
+  type = "Microsoft.Communication/emailServices/domains/senderUsernames@2023-03-31"
   body = {
     properties = {
       displayName = each.value.display_name
       username    = each.value.email_communication_service_domain_sender_username
     }
   }
+  name      = each.value.email_communication_service_domain_sender_username
+  parent_id = azapi_resource.email_communication_service_domain[each.value.email_communication_service_domain_name_key].id
 }

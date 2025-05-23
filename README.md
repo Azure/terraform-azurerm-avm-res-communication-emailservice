@@ -31,6 +31,7 @@ The following resources are used by this module:
 
 - [azapi_resource.email_communication_service](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) (resource)
 - [azapi_resource.email_communication_service_domain](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) (resource)
+- [azapi_resource.email_communication_service_domain_sender_username](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) (resource)
 - [azurerm_management_lock.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/management_lock) (resource)
 - [azurerm_resource_group.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/resource_group) (resource)
 - [azurerm_role_assignment.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment) (resource)
@@ -71,6 +72,26 @@ Type: `string`
 ## Optional Inputs
 
 The following input variables are optional (have default values):
+
+### <a name="input_email_communication_service_domain_sender_usernames"></a> [email\_communication\_service\_domain\_sender\_usernames](#input\_email\_communication\_service\_domain\_sender\_usernames)
+
+Description: A map of Email Communication Service Domains to create on Email Communcation Service.
+
+- `email_communication_service_domain_sender_username_name` - The name of the Email Communication Service Domain Sender Username resource. Changing this forces a new resource to be created.
+- `email_communication_service_domain_name_key` - The key name of the Email Communication Service Domain resource. Changing this forces a new resource to be created.
+- `display_name` - The display name for the Email Communication Service Domain Sender Username resource.
+
+Type:
+
+```hcl
+map(object({
+    email_communication_service_domain_sender_username = string
+    email_communication_service_domain_name_key        = string
+    display_name                                       = optional(string, "")
+  }))
+```
+
+Default: `{}`
 
 ### <a name="input_email_communication_service_domains"></a> [email\_communication\_service\_domains](#input\_email\_communication\_service\_domains)
 

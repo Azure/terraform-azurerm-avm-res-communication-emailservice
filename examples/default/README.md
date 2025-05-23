@@ -62,6 +62,18 @@ module "test" {
   location            = module.regions.regions[random_integer.region_index.result].name
   name                = "email-communication-service-${random_string.name_suffix.id}"
   resource_group_name = module.naming.resource_group.name_unique
+  email_communication_service_domain_sender_usernames = {
+    "azureManagedDomainSenderUsername" = {
+      email_communication_service_domain_sender_username = "azureManagedDomain-sender-username-${random_string.name_suffix.id}"
+      email_communication_service_domain_name_key        = "azureManagedDomain"
+      display_name                                       = "TFTester"
+    }
+
+    "customerManagedDomainSenderUsername" = {
+      email_communication_service_domain_sender_username = "customerManagedDomain-sender-username-${random_string.name_suffix.id}"
+      email_communication_service_domain_name_key        = "customerManagedDomain"
+    }
+  }
   email_communication_service_domains = {
     "azureManagedDomain" = {
       email_communication_service_domain_name = "AzureManagedDomain"
