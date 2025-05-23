@@ -87,6 +87,26 @@ DESCRIPTION
   nullable    = false
 }
 
+variable "email_communication_service_domains" {
+  type = map(object({
+    email_communication_service_domain_name = string
+    domain_management                       = string
+    user_engagement_tracking_enabled        = optional(bool, false)
+    email_communication_service_domain_tags = optional(map(string), null)
+  }))
+  default     = {}
+  description = <<DESCRIPTION
+A map of Email Communication Service Domains to create on Email Communcation Service.
+
+- `email_communication_service_domain_name` - The name of the Email Communication Service Domain resource. If `domain_management` is `AzureManaged`, the name must be `AzureManagedDomain`. Changing this forces a new resource to be created.
+- `domain_management` - Describes how a Email Communication Service Domain resource is being managed. Possible values are `AzureManaged`, `CustomerManaged`, `CustomerManagedInExchangeOnline`. Changing this forces a new resource to be created.
+- `user_engagement_tracking_enabled` - Describes user engagement tracking is enabled or disabled. Defaults to `false`.
+- `email_communication_service_domain_tags` - A mapping of tags which should be assigned to the Email Communication Service Domain.
+
+DESCRIPTION
+  nullable    = false
+}
+
 variable "tags" {
   type        = map(string)
   default     = null
