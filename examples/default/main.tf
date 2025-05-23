@@ -56,8 +56,6 @@ module "test" {
   location            = module.regions.regions[random_integer.region_index.result].name
   name                = "email-communication-service-${random_string.name_suffix.id}"
   resource_group_name = module.naming.resource_group.name_unique
-  enable_telemetry    = var.enable_telemetry # see variables.tf
-
   email_communication_service_domains = {
     "azureManagedDomain" = {
       email_communication_service_domain_name = "AzureManagedDomain"
@@ -74,4 +72,5 @@ module "test" {
       }
     }
   }
+  enable_telemetry = var.enable_telemetry # see variables.tf
 }

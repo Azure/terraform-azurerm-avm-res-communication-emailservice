@@ -43,15 +43,15 @@ resource "azapi_resource" "email_communication_service" {
 resource "azapi_resource" "email_communication_service_domain" {
   for_each = var.email_communication_service_domains
 
-  type      = "Microsoft.Communication/emailServices/domains@2023-03-31"
-  parent_id = azapi_resource.email_communication_service.id
+  type = "Microsoft.Communication/emailServices/domains@2023-03-31"
   body = {
     properties = {
       domainManagement       = each.value.domain_management
       userEngagementTracking = each.value.user_engagement_tracking_enabled ? "Enabled" : "Disabled"
     }
   }
-  location = "global"
-  name     = each.value.email_communication_service_domain_name
-  tags     = each.value.email_communication_service_domain_tags
+  location  = "global"
+  name      = each.value.email_communication_service_domain_name
+  parent_id = azapi_resource.email_communication_service.id
+  tags      = each.value.email_communication_service_domain_tags
 }
