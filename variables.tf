@@ -22,6 +22,24 @@ variable "resource_group_name" {
   nullable    = false
 }
 
+variable "email_communication_service_domain_sender_usernames" {
+  type = map(object({
+    email_communication_service_domain_sender_username = string
+    email_communication_service_domain_name_key        = string
+    display_name                                       = optional(string, "")
+  }))
+  default     = {}
+  description = <<DESCRIPTION
+A map of Email Communication Service Domains to create on Email Communcation Service.
+
+- `email_communication_service_domain_sender_username_name` - The name of the Email Communication Service Domain Sender Username resource. Changing this forces a new resource to be created.
+- `email_communication_service_domain_name_key` - The key name of the Email Communication Service Domain resource. Changing this forces a new resource to be created.
+- `display_name` - The display name for the Email Communication Service Domain Sender Username resource.
+
+DESCRIPTION
+  nullable    = false
+}
+
 variable "email_communication_service_domains" {
   type = map(object({
     email_communication_service_domain_name = string
@@ -37,24 +55,6 @@ A map of Email Communication Service Domains to create on Email Communcation Ser
 - `domain_management` - Describes how a Email Communication Service Domain resource is being managed. Possible values are `AzureManaged`, `CustomerManaged`, `CustomerManagedInExchangeOnline`. Changing this forces a new resource to be created.
 - `user_engagement_tracking_enabled` - Describes user engagement tracking is enabled or disabled. Defaults to `false`.
 - `email_communication_service_domain_tags` - A mapping of tags which should be assigned to the Email Communication Service Domain.
-
-DESCRIPTION
-  nullable    = false
-}
-
-variable "email_communication_service_domain_sender_usernames" {
-  type = map(object({
-    email_communication_service_domain_sender_username = string
-    email_communication_service_domain_name_key        = string
-    display_name                                       = optional(string, "")
-  }))
-  default     = {}
-  description = <<DESCRIPTION
-A map of Email Communication Service Domains to create on Email Communcation Service.
-
-- `email_communication_service_domain_sender_username_name` - The name of the Email Communication Service Domain Sender Username resource. Changing this forces a new resource to be created.
-- `email_communication_service_domain_name_key` - The key name of the Email Communication Service Domain resource. Changing this forces a new resource to be created.
-- `display_name` - The display name for the Email Communication Service Domain Sender Username resource.
 
 DESCRIPTION
   nullable    = false
