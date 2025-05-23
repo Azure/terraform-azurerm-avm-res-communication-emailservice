@@ -39,3 +39,19 @@ resource "azapi_resource" "email_communication_service" {
   parent_id = azurerm_resource_group.this.id
   tags      = var.email_communication_service_tags
 }
+
+resource "azapi_resource" "email_communication_service_domain" {
+  for_each = var.email_communication_service_domains
+
+  type      = "Microsoft.Communication/emailServices/domains@2023-03-31"
+  parent_id = azapi_resource.email_communication_service.id
+  body = {
+    properties = {
+      domainManagement       = each.value.domain_management
+      userEngagementTracking = each.value.user_engagement_tracking_enabled ? "Enabled" : "Disabled"
+    }
+  }
+  location = "global"
+  name     = each.value.email_communication_service_domain_name
+  tags     = each.value.email_communication_service_domain_tags
+}
