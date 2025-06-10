@@ -33,10 +33,10 @@ The following resources are used by this module:
 - [azapi_resource.email_communication_service_domain](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) (resource)
 - [azapi_resource.email_communication_service_domain_sender_username](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) (resource)
 - [azurerm_management_lock.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/management_lock) (resource)
-- [azurerm_resource_group.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/resource_group) (resource)
 - [azurerm_role_assignment.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment) (resource)
 - [modtm_telemetry.telemetry](https://registry.terraform.io/providers/azure/modtm/latest/docs/resources/telemetry) (resource)
 - [random_uuid.telemetry](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/uuid) (resource)
+- [azapi_resource.rg](https://registry.terraform.io/providers/Azure/azapi/latest/docs/data-sources/resource) (data source)
 - [azurerm_client_config.telemetry](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/client_config) (data source)
 - [modtm_module_source.telemetry](https://registry.terraform.io/providers/azure/modtm/latest/docs/data-sources/module_source) (data source)
 
@@ -77,7 +77,7 @@ The following input variables are optional (have default values):
 
 Description: A map of Email Communication Service Domains to create on Email Communcation Service.
 
-- `email_communication_service_domain_sender_username_name` - The name of the Email Communication Service Domain Sender Username resource. Changing this forces a new resource to be created.
+- `name` - The name of the Email Communication Service Domain Sender Username resource. Changing this forces a new resource to be created.
 - `email_communication_service_domain_name_key` - The key name of the Email Communication Service Domain resource. Changing this forces a new resource to be created.
 - `display_name` - The display name for the Email Communication Service Domain Sender Username resource.
 
@@ -85,9 +85,9 @@ Type:
 
 ```hcl
 map(object({
-    email_communication_service_domain_sender_username = string
-    email_communication_service_domain_name_key        = string
-    display_name                                       = optional(string, "")
+    name                                        = string
+    email_communication_service_domain_name_key = string
+    display_name                                = optional(string, "")
   }))
 ```
 
@@ -97,19 +97,19 @@ Default: `{}`
 
 Description: A map of Email Communication Service Domains to create on Email Communcation Service.
 
-- `email_communication_service_domain_name` - The name of the Email Communication Service Domain resource. If `domain_management` is `AzureManaged`, the name must be `AzureManagedDomain`. Changing this forces a new resource to be created.
+- `name` - The name of the Email Communication Service Domain resource. If `domain_management` is `AzureManaged`, the name must be `AzureManagedDomain`. Changing this forces a new resource to be created.
 - `domain_management` - Describes how a Email Communication Service Domain resource is being managed. Possible values are `AzureManaged`, `CustomerManaged`, `CustomerManagedInExchangeOnline`. Changing this forces a new resource to be created.
 - `user_engagement_tracking_enabled` - Describes user engagement tracking is enabled or disabled. Defaults to `false`.
-- `email_communication_service_domain_tags` - A mapping of tags which should be assigned to the Email Communication Service Domain.
+- `tags` - A mapping of tags which should be assigned to the Email Communication Service Domain.
 
 Type:
 
 ```hcl
 map(object({
-    email_communication_service_domain_name = string
-    domain_management                       = string
-    user_engagement_tracking_enabled        = optional(bool, false)
-    email_communication_service_domain_tags = optional(map(string), null)
+    name                             = string
+    domain_management                = string
+    user_engagement_tracking_enabled = optional(bool, false)
+    tags                             = optional(map(string), null)
   }))
 ```
 
@@ -202,6 +202,10 @@ Description: The resource of email communication service
 ### <a name="output_resource_id"></a> [resource\_id](#output\_resource\_id)
 
 Description: The resource ID of email communication service
+
+### <a name="output_resource_in_azurerm_schema"></a> [resource\_in\_azurerm\_schema](#output\_resource\_in\_azurerm\_schema)
+
+Description: The resource of email communication service in azurerm schema
 
 ## Modules
 
