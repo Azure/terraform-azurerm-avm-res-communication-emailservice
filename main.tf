@@ -1,5 +1,6 @@
-data "azurerm_resource_group" "this" {
+data "azapi_resource" "rg" {
   name = var.resource_group_name
+  type = "Microsoft.Resources/resourceGroups@2024-11-01"
 }
 
 resource "azurerm_management_lock" "this" {
@@ -28,7 +29,7 @@ resource "azurerm_role_assignment" "this" {
 resource "azapi_resource" "email_communication_service" {
   location  = "global"
   name      = var.name
-  parent_id = data.azurerm_resource_group.this.id
+  parent_id = data.azapi_resource.rg.id
   type      = "Microsoft.Communication/emailServices@2023-03-31"
   body = {
     properties = {

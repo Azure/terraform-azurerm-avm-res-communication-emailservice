@@ -29,7 +29,7 @@ resource "random_string" "name_suffix" {
 resource "azapi_resource" "resource_group" {
   location = module.regions.regions[random_integer.region_index.result].name
   name     = "avm-res-communication-emailservice-${random_string.name_suffix.result}"
-  type     = "Microsoft.Resources/resourceGroups@2020-06-01"
+  type     = "Microsoft.Resources/resourceGroups@2024-11-01"
 }
 
 # This is the module call
