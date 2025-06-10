@@ -115,14 +115,6 @@ map(object({
 
 Default: `{}`
 
-### <a name="input_email_communication_service_tags"></a> [email\_communication\_service\_tags](#input\_email\_communication\_service\_tags)
-
-Description: (Optional) A mapping of tags which should be assigned to the Email Communication Service.
-
-Type: `map(string)`
-
-Default: `null`
-
 ### <a name="input_enable_telemetry"></a> [enable\_telemetry](#input\_enable\_telemetry)
 
 Description: This variable controls whether or not telemetry is enabled for the module.  
@@ -185,7 +177,7 @@ Default: `{}`
 
 ### <a name="input_tags"></a> [tags](#input\_tags)
 
-Description: (Optional) A mapping of tags which should be assigned to the Resource Group.
+Description: (Optional) A mapping of tags which should be assigned to the Email Communication Service.
 
 Type: `map(string)`
 
