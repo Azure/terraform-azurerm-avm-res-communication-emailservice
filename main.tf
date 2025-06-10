@@ -1,7 +1,5 @@
-resource "azurerm_resource_group" "this" {
-  location = var.location
-  name     = var.resource_group_name
-  tags     = var.tags
+data "azurerm_resource_group" "this" {
+  name = var.resource_group_name
 }
 
 resource "azurerm_management_lock" "this" {
@@ -28,44 +26,56 @@ resource "azurerm_role_assignment" "this" {
 }
 
 resource "azapi_resource" "email_communication_service" {
-  type = "Microsoft.Communication/emailServices@2023-03-31"
+  location  = "global"
+  name      = var.name
+  parent_id = data.azurerm_resource_group.this.id
+  type      = "Microsoft.Communication/emailServices@2023-03-31"
   body = {
     properties = {
       dataLocation = var.data_location
     }
   }
-  location  = "global"
-  name      = var.name
-  parent_id = azurerm_resource_group.this.id
-  tags      = var.email_communication_service_tags
+  create_headers = { "User-Agent" : local.avm_azapi_header }
+  delete_headers = { "User-Agent" : local.avm_azapi_header }
+  read_headers   = { "User-Agent" : local.avm_azapi_header }
+  tags           = var.email_communication_service_tags
+  update_headers = { "User-Agent" : local.avm_azapi_header }
 }
 
 resource "azapi_resource" "email_communication_service_domain" {
   for_each = var.email_communication_service_domains
 
-  type = "Microsoft.Communication/emailServices/domains@2023-03-31"
+  location  = "global"
+  name      = each.value.name
+  parent_id = azapi_resource.email_communication_service.id
+  type      = "Microsoft.Communication/emailServices/domains@2023-03-31"
   body = {
     properties = {
       domainManagement       = each.value.domain_management
       userEngagementTracking = each.value.user_engagement_tracking_enabled ? "Enabled" : "Disabled"
     }
   }
-  location  = "global"
-  name      = each.value.email_communication_service_domain_name
-  parent_id = azapi_resource.email_communication_service.id
-  tags      = each.value.email_communication_service_domain_tags
+  create_headers = { "User-Agent" : local.avm_azapi_header }
+  delete_headers = { "User-Agent" : local.avm_azapi_header }
+  read_headers   = { "User-Agent" : local.avm_azapi_header }
+  tags           = each.value.tags
+  update_headers = { "User-Agent" : local.avm_azapi_header }
 }
 
 resource "azapi_resource" "email_communication_service_domain_sender_username" {
   for_each = var.email_communication_service_domain_sender_usernames
 
-  type = "Microsoft.Communication/emailServices/domains/senderUsernames@2023-03-31"
+  name      = each.value.name
+  parent_id = azapi_resource.email_communication_service_domain[each.value.email_communication_service_domain_name_key].id
+  type      = "Microsoft.Communication/emailServices/domains/senderUsernames@2023-03-31"
   body = {
     properties = {
       displayName = each.value.display_name
-      username    = each.value.email_communication_service_domain_sender_username
+      username    = each.value.name
     }
   }
-  name      = each.value.email_communication_service_domain_sender_username
-  parent_id = azapi_resource.email_communication_service_domain[each.value.email_communication_service_domain_name_key].id
+  create_headers = { "User-Agent" : local.avm_azapi_header }
+  delete_headers = { "User-Agent" : local.avm_azapi_header }
+  read_headers   = { "User-Agent" : local.avm_azapi_header }
+  update_headers = { "User-Agent" : local.avm_azapi_header }
 }
