@@ -39,7 +39,7 @@ resource "azapi_resource" "email_communication_service" {
   create_headers = { "User-Agent" : local.avm_azapi_header }
   delete_headers = { "User-Agent" : local.avm_azapi_header }
   read_headers   = { "User-Agent" : local.avm_azapi_header }
-  tags           = var.email_communication_service_tags
+  tags           = var.tags
   update_headers = { "User-Agent" : local.avm_azapi_header }
 }
 

@@ -60,12 +60,6 @@ DESCRIPTION
   nullable    = false
 }
 
-variable "email_communication_service_tags" {
-  type        = map(string)
-  default     = null
-  description = "(Optional) A mapping of tags which should be assigned to the Email Communication Service."
-}
-
 variable "enable_telemetry" {
   type        = bool
   default     = true
@@ -128,5 +122,5 @@ DESCRIPTION
 variable "tags" {
   type        = map(string)
   default     = null
-  description = "(Optional) A mapping of tags which should be assigned to the Resource Group."
+  description = "(Optional) A mapping of tags which should be assigned to the Email Communication Service."
 }
