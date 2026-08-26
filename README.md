@@ -188,6 +188,10 @@ Default: `null`
 
 The following outputs are exported:
 
+### <a name="output_domain_resource_ids"></a> [domain\_resource\_ids](#output\_domain\_resource\_ids)
+
+Description: A map of the resource IDs for the deployed Email Communication Service domains, keyed by the same keys as `var.email_communication_service_domains`.
+
 ### <a name="output_resource"></a> [resource](#output\_resource)
 
 Description: The resource of email communication service
