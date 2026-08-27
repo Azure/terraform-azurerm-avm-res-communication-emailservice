@@ -2,7 +2,7 @@
 # This allows us to randomize the region for the resource group.
 module "regions" {
   source  = "Azure/avm-utl-regions/azurerm"
-  version = "~> 0.5"
+  version = "0.9.3"
 }
 
 # This allows us to randomize the region for the resource group.
@@ -67,6 +67,10 @@ module "test" {
     }
   }
   enable_telemetry = var.enable_telemetry # see variables.tf
+  tags = {
+    env   = "Prod"
+    scope = "email"
+  }
 
   depends_on = [azapi_resource.resource_group]
 }

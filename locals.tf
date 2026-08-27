@@ -6,5 +6,9 @@ locals {
     data_location       = azapi_resource.email_communication_service.body.properties.dataLocation
     tags                = azapi_resource.email_communication_service.tags
   }
-  role_definition_resource_substring = "/providers/Microsoft.Authorization/roleDefinitions"
+  # A domain inherits the service tags unless it supplies its own set, which replaces
+  # them outright rather than merging.
+  domain_tags = {
+    for k, v in var.email_communication_service_domains : k => v.tags == null ? var.tags : v.tags
+  }
 }
