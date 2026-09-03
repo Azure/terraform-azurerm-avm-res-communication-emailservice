@@ -11,7 +11,27 @@ This is an AVM module to deploy Email Communication Service in Azure.
 
 ## Upgrading from v0.2.x to v0.3.0
 
-v0.3.0 removes the `hashicorp/azurerm` provider and moves the domain and sender username resources into submodules so that per-domain tags keep working. This changes the addresses of existing resources in state, and Terraform will plan to destroy and recreate them unless you move them first. Run these `terraform state mv` commands once, before the first `terraform plan` against v0.3.0, substituting your own module address and map keys.
+v0.3.0 removes the `hashicorp/azurerm` provider and moves the domain and sender username resources into submodules so that per-domain tags keep working.
+
+### Replace `resource_group_name` with `parent_id`
+
+AVM AzAPI resource modules take the parent scope as a fully-qualified ARM resource ID rather than a name, so `var.resource_group_name` is gone. Pass the resource group ID instead:
+
+```diff
+ module "email" {
+   source  = "Azure/avm-res-communication-emailservice/azurerm"
+   version = "0.3.0"
+
+-  resource_group_name = azurerm_resource_group.this.name
++  parent_id           = azurerm_resource_group.this.id
+ }
+```
+
+This also removes the resource group data source the module used to run on every plan, so the module no longer needs read permission on the resource group itself.
+
+### Move the domain and sender username resources in state
+
+Moving those resources into submodules changes their addresses in state, and Terraform will plan to destroy and recreate them unless you move them first. Run these `terraform state mv` commands once, before the first `terraform plan` against v0.3.0, substituting your own module address and map keys.
 
 ```shell
 # For every key in var.email_communication_service_domains
@@ -24,6 +44,8 @@ terraform state mv \
   'module.<your_module>.azapi_resource.email_communication_service_domain_sender_username["<key>"]' \
   'module.<your_module>.module.domain_sender_username["<key>"].azapi_resource.this'
 ```
+
+### Re-import locks and role assignments
 
 Locks and role assignments moved from the AzureRM provider to AzAPI, which Terraform cannot migrate with `state mv`. Remove them from state and import them again:
 
@@ -43,7 +65,7 @@ terraform import \
 
 Role assignment names are GUIDs that Azure generated for you. If you would rather not import, set the new `name` attribute on each entry in `var.role_assignments` to the GUID at the end of the existing role assignment ID, so the module recreates the assignment with the same name instead of failing on a duplicate.
 
-Two other changes are breaking:
+### Other breaking changes
 
 - The `resource` output was removed because AVM modules must not export whole resource objects. Use `resource_id`, `name`, or the new `domain_*` outputs instead.
 - `skip_service_principal_aad_check` on `var.role_assignments` is accepted but has no effect, because AzAPI does not implement the check.

@@ -35,16 +35,14 @@ resource "azapi_resource" "resource_group" {
 
 # This is the module call
 # Do not specify location here due to the randomization above.
-# Leaving location as `null` will cause the module to use the resource group location
-# with a data source.
 module "test" {
   source = "../../"
 
   data_location = "United States"
   # source              = "Azure/avm-res-communication-emailservice"
-  location            = azapi_resource.resource_group.location
-  name                = "email-communication-service-${random_string.name_suffix.id}"
-  resource_group_name = azapi_resource.resource_group.name
+  location  = azapi_resource.resource_group.location
+  name      = "email-communication-service-${random_string.name_suffix.id}"
+  parent_id = azapi_resource.resource_group.id
   email_communication_service_domain_sender_usernames = {
     azureManagedDomainSenderUsername = {
       name                                        = "azureManagedDomain-sender-username-${random_string.name_suffix.id}"

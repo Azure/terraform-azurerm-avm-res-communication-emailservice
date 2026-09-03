@@ -1,10 +1,4 @@
 mock_provider "azapi" {
-  mock_data "azapi_resource" {
-    defaults = {
-      id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-test"
-    }
-  }
-
   mock_resource "azapi_resource" {
     defaults = {
       id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-test/providers/Microsoft.Communication/emailServices/ecs-test"
@@ -16,11 +10,11 @@ mock_provider "modtm" {}
 mock_provider "random" {}
 
 variables {
-  name                = "ecs-test"
-  location            = "eastus"
-  resource_group_name = "rg-test"
-  data_location       = "United States"
-  enable_telemetry    = false
+  name             = "ecs-test"
+  location         = "eastus"
+  parent_id        = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-test"
+  data_location    = "United States"
+  enable_telemetry = false
 
   tags = {
     env = "Prod"
@@ -126,4 +120,23 @@ run "resource_types_can_be_overridden" {
     condition     = azapi_resource.email_communication_service.type == "Microsoft.Communication/emailServices@2023-04-01-preview"
     error_message = "var.resource_types should control the API version used for the Email Communication Service."
   }
+}
+
+run "resource_group_name_is_parsed_from_parent_id" {
+  command = plan
+
+  assert {
+    condition     = local.azurerm_resource_body.resource_group_name == "rg-test"
+    error_message = "The resource group name exposed for AzureRM schema compatibility should be parsed from var.parent_id."
+  }
+}
+
+run "parent_id_rejects_a_non_resource_group_id" {
+  command = plan
+
+  variables {
+    parent_id = "/subscriptions/00000000-0000-0000-0000-000000000000"
+  }
+
+  expect_failures = [var.parent_id]
 }

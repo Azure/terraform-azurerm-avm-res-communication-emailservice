@@ -1,13 +1,7 @@
-data "azapi_resource" "rg" {
-  name                   = var.resource_group_name
-  type                   = "Microsoft.Resources/resourceGroups@2024-11-01"
-  response_export_values = []
-}
-
 resource "azapi_resource" "email_communication_service" {
   location  = "global"
   name      = var.name
-  parent_id = data.azapi_resource.rg.id
+  parent_id = var.parent_id
   type      = var.resource_types.communication_email_services
   body = {
     properties = {

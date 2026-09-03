@@ -16,10 +16,15 @@ variable "name" {
   nullable    = false
 }
 
-variable "resource_group_name" {
+variable "parent_id" {
   type        = string
-  description = "(Required) The resource group where the resources will be deployed. Changing this forces a new resource to be created."
+  description = "(Required) The fully-qualified ARM resource ID of the existing resource group into which the Email Communication Service will be deployed. Changing this forces a new resource to be created."
   nullable    = false
+
+  validation {
+    condition     = can(provider::azapi::parse_resource_id("Microsoft.Resources/resourceGroups", var.parent_id))
+    error_message = "`parent_id` must be a valid resource group resource ID."
+  }
 }
 
 variable "email_communication_service_domain_sender_usernames" {
