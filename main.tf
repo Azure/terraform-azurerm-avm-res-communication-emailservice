@@ -36,11 +36,7 @@ resource "azapi_resource" "email_communication_service" {
       dataLocation = var.data_location
     }
   }
-  create_headers = var.enable_telemetry ? { "User-Agent" : local.avm_azapi_header } : null
-  delete_headers = var.enable_telemetry ? { "User-Agent" : local.avm_azapi_header } : null
-  read_headers   = var.enable_telemetry ? { "User-Agent" : local.avm_azapi_header } : null
-  tags           = var.tags
-  update_headers = var.enable_telemetry ? { "User-Agent" : local.avm_azapi_header } : null
+  tags = var.tags
 }
 
 resource "azapi_resource" "email_communication_service_domain" {
@@ -56,11 +52,7 @@ resource "azapi_resource" "email_communication_service_domain" {
       userEngagementTracking = each.value.user_engagement_tracking_enabled ? "Enabled" : "Disabled"
     }
   }
-  create_headers = var.enable_telemetry ? { "User-Agent" : local.avm_azapi_header } : null
-  delete_headers = var.enable_telemetry ? { "User-Agent" : local.avm_azapi_header } : null
-  read_headers   = var.enable_telemetry ? { "User-Agent" : local.avm_azapi_header } : null
-  tags           = each.value.tags
-  update_headers = var.enable_telemetry ? { "User-Agent" : local.avm_azapi_header } : null
+  tags = each.value.tags
 }
 
 resource "azapi_resource" "email_communication_service_domain_sender_username" {
@@ -75,8 +67,4 @@ resource "azapi_resource" "email_communication_service_domain_sender_username" {
       username    = each.value.name
     }
   }
-  create_headers = var.enable_telemetry ? { "User-Agent" : local.avm_azapi_header } : null
-  delete_headers = var.enable_telemetry ? { "User-Agent" : local.avm_azapi_header } : null
-  read_headers   = var.enable_telemetry ? { "User-Agent" : local.avm_azapi_header } : null
-  update_headers = var.enable_telemetry ? { "User-Agent" : local.avm_azapi_header } : null
 }
