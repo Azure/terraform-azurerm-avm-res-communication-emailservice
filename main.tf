@@ -1,70 +1,58 @@
-data "azapi_resource" "rg" {
-  name = var.resource_group_name
-  type = "Microsoft.Resources/resourceGroups@2024-11-01"
-}
-
-resource "azurerm_management_lock" "this" {
-  count = var.lock != null ? 1 : 0
-
-  lock_level = var.lock.kind
-  name       = coalesce(var.lock.name, "lock-${var.lock.kind}")
-  scope      = azapi_resource.email_communication_service.id
-  notes      = var.lock.kind == "CanNotDelete" ? "Cannot delete the resource or its child resources." : "Cannot delete or modify the resource or its child resources."
-}
-
-resource "azurerm_role_assignment" "this" {
-  for_each = var.role_assignments
-
-  principal_id                           = each.value.principal_id
-  scope                                  = azapi_resource.email_communication_service.id
-  condition                              = each.value.condition
-  condition_version                      = each.value.condition_version
-  delegated_managed_identity_resource_id = each.value.delegated_managed_identity_resource_id
-  principal_type                         = each.value.principal_type
-  role_definition_id                     = strcontains(lower(each.value.role_definition_id_or_name), lower(local.role_definition_resource_substring)) ? each.value.role_definition_id_or_name : null
-  role_definition_name                   = strcontains(lower(each.value.role_definition_id_or_name), lower(local.role_definition_resource_substring)) ? null : each.value.role_definition_id_or_name
-  skip_service_principal_aad_check       = each.value.skip_service_principal_aad_check
-}
-
 resource "azapi_resource" "email_communication_service" {
   location  = "global"
   name      = var.name
-  parent_id = data.azapi_resource.rg.id
-  type      = "Microsoft.Communication/emailServices@2023-03-31"
+  parent_id = var.parent_id
+  type      = var.resource_types.communication_email_services
   body = {
     properties = {
       dataLocation = var.data_location
     }
   }
-  tags = var.tags
+  ignore_body_changes = length(var.ignore_body_changes.communication_email_services) > 0 ? var.ignore_body_changes.communication_email_services : null
+  # `dataLocation` is immutable, so a change to it must replace the service.
+  replace_triggers_refs  = ["body.properties.dataLocation"]
+  response_export_values = []
+  retry                  = var.retry
+  tags                   = var.tags
+
+  dynamic "timeouts" {
+    for_each = var.timeouts == null ? [] : [var.timeouts]
+
+    content {
+      create = timeouts.value.create
+      delete = timeouts.value.delete
+      read   = timeouts.value.read
+      update = timeouts.value.update
+    }
+  }
 }
 
-resource "azapi_resource" "email_communication_service_domain" {
+module "domain" {
+  source   = "./modules/domain"
   for_each = var.email_communication_service_domains
 
-  location  = "global"
-  name      = each.value.name
-  parent_id = azapi_resource.email_communication_service.id
-  type      = "Microsoft.Communication/emailServices/domains@2023-03-31"
-  body = {
-    properties = {
-      domainManagement       = each.value.domain_management
-      userEngagementTracking = each.value.user_engagement_tracking_enabled ? "Enabled" : "Disabled"
-    }
-  }
-  tags = each.value.tags
+  domain_management                = each.value.domain_management
+  name                             = each.value.name
+  parent_id                        = azapi_resource.email_communication_service.id
+  enable_telemetry                 = var.enable_telemetry
+  ignore_body_changes              = var.ignore_body_changes.communication_email_services_domains
+  resource_types                   = var.resource_types.communication_email_services_domains
+  retry                            = var.retry
+  tags                             = local.domain_tags[each.key]
+  timeouts                         = var.timeouts
+  user_engagement_tracking_enabled = each.value.user_engagement_tracking_enabled
 }
 
-resource "azapi_resource" "email_communication_service_domain_sender_username" {
+module "domain_sender_username" {
+  source   = "./modules/domain-sender-username"
   for_each = var.email_communication_service_domain_sender_usernames
 
-  name      = each.value.name
-  parent_id = azapi_resource.email_communication_service_domain[each.value.email_communication_service_domain_name_key].id
-  type      = "Microsoft.Communication/emailServices/domains/senderUsernames@2023-03-31"
-  body = {
-    properties = {
-      displayName = each.value.display_name
-      username    = each.value.name
-    }
-  }
+  name                = each.value.name
+  parent_id           = module.domain[each.value.email_communication_service_domain_name_key].resource_id
+  display_name        = each.value.display_name
+  enable_telemetry    = var.enable_telemetry
+  ignore_body_changes = var.ignore_body_changes.communication_email_services_domains_sender_usernames
+  resource_types      = var.resource_types.communication_email_services_domains_sender_usernames
+  retry               = var.retry
+  timeouts            = var.timeouts
 }
