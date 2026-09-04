@@ -8,16 +8,12 @@ resource "azapi_resource" "email_communication_service" {
       dataLocation = var.data_location
     }
   }
-  create_headers      = var.enable_telemetry ? { "User-Agent" : local.avm_azapi_header } : null
-  delete_headers      = var.enable_telemetry ? { "User-Agent" : local.avm_azapi_header } : null
   ignore_body_changes = length(var.ignore_body_changes.communication_email_services) > 0 ? var.ignore_body_changes.communication_email_services : null
-  read_headers        = var.enable_telemetry ? { "User-Agent" : local.avm_azapi_header } : null
   # `dataLocation` is immutable, so a change to it must replace the service.
   replace_triggers_refs  = ["body.properties.dataLocation"]
   response_export_values = []
   retry                  = var.retry
   tags                   = var.tags
-  update_headers         = var.enable_telemetry ? { "User-Agent" : local.avm_azapi_header } : null
 
   dynamic "timeouts" {
     for_each = var.timeouts == null ? [] : [var.timeouts]
