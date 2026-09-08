@@ -2,6 +2,12 @@ mock_provider "azapi" {
   mock_resource "azapi_resource" {
     defaults = {
       id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-test/providers/Microsoft.Communication/emailServices/ecs-test/domains/example.com"
+      output = {
+        from_sender_domain      = "example.com"
+        mail_from_sender_domain = "example.com"
+        verification_records    = {}
+        verification_states     = {}
+      }
     }
   }
 }
@@ -60,5 +66,14 @@ run "tags_are_applied" {
   assert {
     condition     = azapi_resource.this.tags == tomap({ env = "Test" })
     error_message = "The domain should be tagged with the supplied tags."
+  }
+}
+
+run "domain_management_replacement_reference" {
+  command = apply
+
+  assert {
+    condition     = azapi_resource.this.replace_triggers_refs == tolist(["properties.domainManagement"])
+    error_message = "Domain replacement references must start at properties, relative to body; body.properties.domainManagement selects nothing."
   }
 }

@@ -183,9 +183,11 @@ variable "role_assignments" {
   description = <<DESCRIPTION
 A map of role assignments to create on this resource. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time.
 
+Changing the principal, role definition, or delegated managed identity deletes and recreates the assignment with the same GUID. Access can be interrupted during replacement. Description and condition changes update the assignment in place.
+
 - `name` - (Optional) The name of the role assignment. If not specified, a GUID will be generated. Changing this forces the creation of a new resource.
-- `role_definition_id_or_name` - The ID or name of the role definition to assign to the principal.
-- `principal_id` - The ID of the principal to assign the role to.
+- `role_definition_id_or_name` - The ID or name of the role definition to assign to the principal. Changing the resolved role definition forces replacement.
+- `principal_id` - The ID of the principal to assign the role to. Changing this forces replacement.
 - `description` - The description of the role assignment.
 - `skip_service_principal_aad_check` - Has no effect when the role assignment is created with AzAPI, and is retained for backwards compatibility.
 - `condition` - The condition which will be used to scope the role assignment.

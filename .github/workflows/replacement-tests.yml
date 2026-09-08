@@ -1,0 +1,39 @@
+---
+name: Replacement regression tests
+
+on:
+  pull_request:
+    types: ['opened', 'reopened', 'synchronize']
+  merge_group:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  replacement-plans:
+    name: Offline replacement plans
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
+
+      - name: Initialize and validate Terraform
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          Install-PSResource -Name Avm.Authoring -Version 0.12.1 -Repository PSGallery -Scope CurrentUser -TrustRepository
+          Import-Module Avm.Authoring -RequiredVersion 0.12.1
+          avm test
+
+      - name: Assert replacement and no-change plans
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          Import-Module Avm.Authoring -RequiredVersion 0.12.1
+          $terraform = avm tool which terraform --passthru
+          $env:PATH = "$(Split-Path $terraform.Path)$([IO.Path]::PathSeparator)$env:PATH"
+          & .\tests\unit\replacement.ps1

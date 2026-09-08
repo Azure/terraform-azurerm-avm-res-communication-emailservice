@@ -10,7 +10,7 @@ resource "azapi_resource" "email_communication_service" {
   }
   ignore_body_changes = length(var.ignore_body_changes.communication_email_services) > 0 ? var.ignore_body_changes.communication_email_services : null
   # `dataLocation` is immutable, so a change to it must replace the service.
-  replace_triggers_refs  = ["body.properties.dataLocation"]
+  replace_triggers_refs  = ["properties.dataLocation"]
   response_export_values = []
   retry                  = var.retry
   tags                   = var.tags

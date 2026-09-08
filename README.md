@@ -24,12 +24,14 @@ AVM AzAPI resource modules take the parent scope as a fully-qualified ARM resour
    source  = "Azure/avm-res-communication-emailservice/azurerm"
    version = "0.3.0"
 
--  resource_group_name = azurerm_resource_group.this.name
-+  parent_id           = azurerm_resource_group.this.id
+-  resource_group_name = azapi_resource.resource_group.name
++  parent_id           = azapi_resource.resource_group.id
  }
 ```
 
-This also removes the resource group data source the module used to run on every plan, so the module no longer needs read permission on the resource group itself.
+The module no longer performs a separate resource group lookup. The caller supplies the complete resource group ID, including its subscription.
+
+Before changing state, back it up with `terraform state pull` and retain the existing resource IDs. State can contain secrets; store the backup securely. Pause other Terraform runs against the same state until the migration is complete.
 
 ### Move the domain and sender username resources in state
 
@@ -49,7 +51,9 @@ terraform state mv \
 
 ### Re-import locks and role assignments
 
-Locks and role assignments moved from the AzureRM provider to AzAPI, which Terraform cannot migrate with `state mv`. Remove them from state and import them again:
+Locks and role assignments moved from the AzureRM provider to AzAPI. The following procedure removes their old state entries and imports the existing Azure resources at their new addresses. These commands do not delete the resources in Azure. Do not run `terraform apply` between removing a state entry and importing its replacement.
+
+For an existing lock, retain its current name in the caller's `lock.name` input before importing:
 
 ```shell
 # Only if you set var.lock
@@ -57,15 +61,36 @@ terraform state rm 'module.<your_module>.azurerm_management_lock.this[0]'
 terraform import \
   'module.<your_module>.azapi_resource.lock["lock"]' \
   '<email_communication_service_id>/providers/Microsoft.Authorization/locks/<lock_name>?api-version=2020-05-01'
-
-# For every key in var.role_assignments
-terraform state rm 'module.<your_module>.azurerm_role_assignment.this["<key>"]'
-terraform import \
-  'module.<your_module>.azapi_resource.role_assignment["<key>"]' \
-  '<existing_role_assignment_id>?api-version=2022-04-01'
 ```
 
-Role assignment names are GUIDs that Azure generated for you. If you would rather not import, set the new `name` attribute on each entry in `var.role_assignments` to the GUID at the end of the existing role assignment ID, so the module recreates the assignment with the same name instead of failing on a duplicate.
+For every existing role assignment, **set its existing GUID as `name` and import it**. Both steps are required:
+
+1. Read the assignment ID from the old state with `terraform state show 'module.<your_module>.azurerm_role_assignment.this["<key>"]'`. The last segment of the ID is its GUID.
+2. Set that GUID as `name` on the corresponding entry in the caller's `role_assignments` map. Keep the same principal, role, condition, and other settings.
+3. Remove the old state entry and import the assignment at its new address.
+
+For example, an existing assignment whose ID ends in `/roleAssignments/11111111-1111-4111-8111-111111111111` needs the following caller input. Keep `name` in the configuration after the import:
+
+```hcl
+role_assignments = {
+  reader = {
+    name                      = "11111111-1111-4111-8111-111111111111"
+    role_definition_id_or_name = "Reader"
+    principal_id              = "<existing-principal-id>"
+  }
+}
+```
+
+Then import that same assignment. Replace the module address, map key, and resource ID with the values from your state:
+
+```powershell
+terraform state rm 'module.<your_module>.azurerm_role_assignment.this["reader"]'
+terraform import 'module.<your_module>.azapi_resource.role_assignment["reader"]' '<existing_role_assignment_id>?api-version=2022-04-01'
+```
+
+Setting `name` alone does not tell Terraform that the resource already exists. Importing alone leaves the configuration free to choose a different name. Doing both preserves the existing assignment instead of attempting a duplicate creation or an unintended replacement.
+
+After migrating every resource, run `terraform plan`. Confirm it does not delete or replace the imported assignments, moved domains, or sender usernames. Resolve any differences before applying. Terraform may add bookkeeping resources used by the interfaces module; those are not Azure role assignments.
 
 ### Other breaking changes
 
@@ -286,9 +311,11 @@ Default: `null`
 
 Description: A map of role assignments to create on this resource. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time.
 
+Changing the principal, role definition, or delegated managed identity deletes and recreates the assignment with the same GUID. Access can be interrupted during replacement. Description and condition changes update the assignment in place.
+
 - `name` - (Optional) The name of the role assignment. If not specified, a GUID will be generated. Changing this forces the creation of a new resource.
-- `role_definition_id_or_name` - The ID or name of the role definition to assign to the principal.
-- `principal_id` - The ID of the principal to assign the role to.
+- `role_definition_id_or_name` - The ID or name of the role definition to assign to the principal. Changing the resolved role definition forces replacement.
+- `principal_id` - The ID of the principal to assign the role to. Changing this forces replacement.
 - `description` - The description of the role assignment.
 - `skip_service_principal_aad_check` - Has no effect when the role assignment is created with AzAPI, and is retained for backwards compatibility.
 - `condition` - The condition which will be used to scope the role assignment.

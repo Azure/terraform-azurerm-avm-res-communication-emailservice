@@ -36,12 +36,18 @@ resource "azapi_resource" "lock" {
 resource "azapi_resource" "role_assignment" {
   for_each = module.avm_interfaces.role_assignments_azapi
 
-  name                   = each.value.name
-  parent_id              = azapi_resource.email_communication_service.id
-  type                   = var.resource_types.authorization_role_assignments
-  body                   = each.value.body
-  ignore_body_changes    = length(var.ignore_body_changes.authorization_role_assignments) > 0 ? var.ignore_body_changes.authorization_role_assignments : null
-  ignore_null_property   = true
+  name                 = each.value.name
+  parent_id            = azapi_resource.email_communication_service.id
+  type                 = var.resource_types.authorization_role_assignments
+  body                 = each.value.body
+  ignore_body_changes  = length(var.ignore_body_changes.authorization_role_assignments) > 0 ? var.ignore_body_changes.authorization_role_assignments : null
+  ignore_null_property = true
+  # Keep both generated and caller-supplied GUIDs, but delete immutable assignments before recreating them.
+  replace_triggers_refs = [
+    "properties.principalId",
+    "properties.roleDefinitionId",
+    "properties.delegatedManagedIdentityResourceId",
+  ]
   response_export_values = []
   # Role assignments frequently fail immediately after the scope is created because
   # the principal or the scope has not replicated yet.
