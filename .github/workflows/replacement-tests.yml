@@ -21,13 +21,13 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Initialize and validate Terraform
+      - name: Initialize all unit-test scopes and run mocked tests
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
           Install-PSResource -Name Avm.Authoring -Version 0.12.1 -Repository PSGallery -Scope CurrentUser -TrustRepository
           Import-Module Avm.Authoring -RequiredVersion 0.12.1
-          avm test
+          avm test unit
 
       - name: Assert replacement and no-change plans
         shell: pwsh
