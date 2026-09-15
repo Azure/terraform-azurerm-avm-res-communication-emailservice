@@ -25,15 +25,15 @@ jobs:
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
-          Install-PSResource -Name Avm.Authoring -Version 0.12.1 -Repository PSGallery -Scope CurrentUser -TrustRepository
-          Import-Module Avm.Authoring -RequiredVersion 0.12.1
+          Install-PSResource -Name Avm.Authoring -Repository PSGallery -Scope CurrentUser -TrustRepository
+          Import-Module Avm.Authoring
           avm test unit
 
       - name: Assert replacement and no-change plans
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
-          Import-Module Avm.Authoring -RequiredVersion 0.12.1
+          Import-Module Avm.Authoring
           $terraform = avm tool which terraform --passthru
           $env:PATH = "$(Split-Path $terraform.Path)$([IO.Path]::PathSeparator)$env:PATH"
           & .\tests\unit\replacement.ps1
