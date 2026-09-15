@@ -9,7 +9,7 @@ This deploys the Email Communication Service.
 # This allows us to randomize the region for the resource group.
 module "regions" {
   source  = "Azure/avm-utl-regions/azurerm"
-  version = "~> 0.5"
+  version = "0.9.3"
 }
 
 # This allows us to randomize the region for the resource group.
@@ -36,16 +36,14 @@ resource "azapi_resource" "resource_group" {
 
 # This is the module call
 # Do not specify location here due to the randomization above.
-# Leaving location as `null` will cause the module to use the resource group location
-# with a data source.
 module "test" {
   source = "../../"
 
   data_location = "United States"
   # source              = "Azure/avm-res-communication-emailservice"
-  location            = azapi_resource.resource_group.location
-  name                = "email-communication-service-${random_string.name_suffix.id}"
-  resource_group_name = azapi_resource.resource_group.name
+  location  = azapi_resource.resource_group.location
+  name      = "email-communication-service-${random_string.name_suffix.id}"
+  parent_id = azapi_resource.resource_group.id
   email_communication_service_domain_sender_usernames = {
     azureManagedDomainSenderUsername = {
       name                                        = "azureManagedDomain-sender-username-${random_string.name_suffix.id}"
@@ -75,6 +73,10 @@ module "test" {
     }
   }
   enable_telemetry = var.enable_telemetry # see variables.tf
+  tags = {
+    env   = "Prod"
+    scope = "email"
+  }
 
   depends_on = [azapi_resource.resource_group]
 }
@@ -87,9 +89,7 @@ The following requirements are needed by this module:
 
 - <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (~> 1.11)
 
-- <a name="requirement_azapi"></a> [azapi](#requirement\_azapi) (~> 2.4)
-
-- <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (~> 4.29)
+- <a name="requirement_azapi"></a> [azapi](#requirement\_azapi) (~> 2.12)
 
 - <a name="requirement_random"></a> [random](#requirement\_random) (~> 3.7)
 
@@ -132,7 +132,7 @@ The following Modules are called:
 
 Source: Azure/avm-utl-regions/azurerm
 
-Version: ~> 0.5
+Version: 0.9.3
 
 ### <a name="module_test"></a> [test](#module\_test)
 

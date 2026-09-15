@@ -11,6 +11,92 @@ This is an AVM module to deploy Email Communication Service in Azure.
 >
 > However, it is important to note that this **DOES NOT** mean that the modules cannot be consumed and utilized. They **CAN** be leveraged in all types of environments (dev, test, prod etc.). Consumers can treat them just like any other IaC module and raise issues or feature requests against them as they learn from the usage of the module. Consumers should also read the release notes for each version, if considering updating to a more recent version of a module to see if there are any considerations or breaking changes etc.
 
+## Upgrading from v0.2.x to v0.3.0
+
+v0.3.0 removes the `hashicorp/azurerm` provider and moves the domain and sender username resources into submodules so that per-domain tags keep working.
+
+### Replace `resource_group_name` with `parent_id`
+
+AVM AzAPI resource modules take the parent scope as a fully-qualified ARM resource ID rather than a name, so `var.resource_group_name` is gone. Pass the resource group ID instead:
+
+```diff
+ module "email" {
+   source  = "Azure/avm-res-communication-emailservice/azurerm"
+   version = "0.3.0"
+
+-  resource_group_name = azapi_resource.resource_group.name
++  parent_id           = azapi_resource.resource_group.id
+ }
+```
+
+The module no longer performs a separate resource group lookup. The caller supplies the complete resource group ID, including its subscription.
+
+Before changing state, back it up with `terraform state pull` and retain the existing resource IDs. State can contain secrets; store the backup securely. Pause other Terraform runs against the same state until the migration is complete.
+
+### Move the domain and sender username resources in state
+
+Moving those resources into submodules changes their addresses in state, and Terraform will plan to destroy and recreate them unless you move them first. Run these `terraform state mv` commands once, before the first `terraform plan` against v0.3.0, substituting your own module address and map keys.
+
+```shell
+# For every key in var.email_communication_service_domains
+terraform state mv \
+  'module.<your_module>.azapi_resource.email_communication_service_domain["<key>"]' \
+  'module.<your_module>.module.domain["<key>"].azapi_resource.this'
+
+# For every key in var.email_communication_service_domain_sender_usernames
+terraform state mv \
+  'module.<your_module>.azapi_resource.email_communication_service_domain_sender_username["<key>"]' \
+  'module.<your_module>.module.domain_sender_username["<key>"].azapi_resource.this'
+```
+
+### Re-import locks and role assignments
+
+Locks and role assignments moved from the AzureRM provider to AzAPI. The following procedure removes their old state entries and imports the existing Azure resources at their new addresses. These commands do not delete the resources in Azure. Do not run `terraform apply` between removing a state entry and importing its replacement.
+
+For an existing lock, retain its current name in the caller's `lock.name` input before importing:
+
+```shell
+# Only if you set var.lock
+terraform state rm 'module.<your_module>.azurerm_management_lock.this[0]'
+terraform import \
+  'module.<your_module>.azapi_resource.lock["lock"]' \
+  '<email_communication_service_id>/providers/Microsoft.Authorization/locks/<lock_name>?api-version=2020-05-01'
+```
+
+For every existing role assignment, **set its existing GUID as `name` and import it**. Both steps are required:
+
+1. Read the assignment ID from the old state with `terraform state show 'module.<your_module>.azurerm_role_assignment.this["<key>"]'`. The last segment of the ID is its GUID.
+2. Set that GUID as `name` on the corresponding entry in the caller's `role_assignments` map. Keep the same principal, role, condition, and other settings.
+3. Remove the old state entry and import the assignment at its new address.
+
+For example, an existing assignment whose ID ends in `/roleAssignments/11111111-1111-4111-8111-111111111111` needs the following caller input. Keep `name` in the configuration after the import:
+
+```hcl
+role_assignments = {
+  reader = {
+    name                      = "11111111-1111-4111-8111-111111111111"
+    role_definition_id_or_name = "Reader"
+    principal_id              = "<existing-principal-id>"
+  }
+}
+```
+
+Then import that same assignment. Replace the module address, map key, and resource ID with the values from your state:
+
+```powershell
+terraform state rm 'module.<your_module>.azurerm_role_assignment.this["reader"]'
+terraform import 'module.<your_module>.azapi_resource.role_assignment["reader"]' '<existing_role_assignment_id>?api-version=2022-04-01'
+```
+
+Setting `name` alone does not tell Terraform that the resource already exists. Importing alone leaves the configuration free to choose a different name. Doing both preserves the existing assignment instead of attempting a duplicate creation or an unintended replacement.
+
+After migrating every resource, run `terraform plan`. Confirm it does not delete or replace the imported assignments, moved domains, or sender usernames. Resolve any differences before applying. Terraform may add bookkeeping resources used by the interfaces module; those are not Azure role assignments.
+
+### Other breaking changes
+
+- The `resource` output was removed because AVM modules must not export whole resource objects. Use `resource_id`, `name`, or the new `domain_*` outputs instead.
+- `skip_service_principal_aad_check` on `var.role_assignments` is accepted but has no effect, because AzAPI does not implement the check.
+
 <!-- markdownlint-disable MD033 -->
 ## Requirements
 
@@ -19,8 +105,6 @@ The following requirements are needed by this module:
 - <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (~> 1.11)
 
 - <a name="requirement_azapi"></a> [azapi](#requirement\_azapi) (~> 2.12)
-
-- <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (~> 4.29)
 
 - <a name="requirement_modtm"></a> [modtm](#requirement\_modtm) (~> 0.3)
 
@@ -31,14 +115,11 @@ The following requirements are needed by this module:
 The following resources are used by this module:
 
 - [azapi_resource.email_communication_service](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) (resource)
-- [azapi_resource.email_communication_service_domain](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) (resource)
-- [azapi_resource.email_communication_service_domain_sender_username](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) (resource)
-- [azurerm_management_lock.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/management_lock) (resource)
-- [azurerm_role_assignment.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment) (resource)
+- [azapi_resource.lock](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) (resource)
+- [azapi_resource.role_assignment](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) (resource)
 - [modtm_telemetry.telemetry](https://registry.terraform.io/providers/azure/modtm/latest/docs/resources/telemetry) (resource)
 - [random_uuid.telemetry](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/uuid) (resource)
 - [azapi_client_config.telemetry](https://registry.terraform.io/providers/Azure/azapi/latest/docs/data-sources/client_config) (data source)
-- [azapi_resource.rg](https://registry.terraform.io/providers/Azure/azapi/latest/docs/data-sources/resource) (data source)
 - [modtm_module_source.telemetry](https://registry.terraform.io/providers/azure/modtm/latest/docs/data-sources/module_source) (data source)
 
 <!-- markdownlint-disable MD013 -->
@@ -64,9 +145,9 @@ Description: (Required) The name of the Email Communication Service resource. Ch
 
 Type: `string`
 
-### <a name="input_resource_group_name"></a> [resource\_group\_name](#input\_resource\_group\_name)
+### <a name="input_parent_id"></a> [parent\_id](#input\_parent\_id)
 
-Description: (Required) The resource group where the resources will be deployed. Changing this forces a new resource to be created.
+Description: (Required) The fully-qualified ARM resource ID of the existing resource group into which the Email Communication Service will be deployed. Changing this forces a new resource to be created.
 
 Type: `string`
 
@@ -126,19 +207,101 @@ Type: `bool`
 
 Default: `true`
 
+### <a name="input_ignore_body_changes"></a> [ignore\_body\_changes](#input\_ignore\_body\_changes)
+
+Description: Lists of JSON paths in the request body that this module should stop managing after creation, keyed by resource. Use this when another process mutates part of a resource and you want Terraform to leave those properties alone.
+
+- `communication_email_services` - Paths to ignore on the Email Communication Service.
+- `authorization_locks` - Paths to ignore on the management lock.
+- `authorization_role_assignments` - Paths to ignore on the role assignments.
+- `communication_email_services_domains.communication_email_services_domains` - Paths to ignore on each Email Communication Service Domain.
+- `communication_email_services_domains_sender_usernames.communication_email_services_domains_sender_usernames` - Paths to ignore on each Email Communication Service Domain Sender Username.
+
+Example: `["properties.userEngagementTracking"]`
+
+Type:
+
+```hcl
+object({
+    communication_email_services   = optional(list(string), [])
+    authorization_locks            = optional(list(string), [])
+    authorization_role_assignments = optional(list(string), [])
+    communication_email_services_domains = optional(object({
+      communication_email_services_domains = optional(list(string), [])
+    }), {})
+    communication_email_services_domains_sender_usernames = optional(object({
+      communication_email_services_domains_sender_usernames = optional(list(string), [])
+    }), {})
+  })
+```
+
+Default: `{}`
+
 ### <a name="input_lock"></a> [lock](#input\_lock)
 
 Description: Controls the Resource Lock configuration for this resource. The following properties can be specified:
 
 - `kind` - (Required) The type of lock. Possible values are `\"CanNotDelete\"` and `\"ReadOnly\"`.
 - `name` - (Optional) The name of the lock. If not specified, a name will be generated based on the `kind` value. Changing this forces the creation of a new resource.
+- `notes` - (Optional) Notes about the lock. Maximum of 512 characters.
 
 Type:
 
 ```hcl
 object({
-    kind = string
-    name = optional(string, null)
+    kind  = string
+    name  = optional(string, null)
+    notes = optional(string, null)
+  })
+```
+
+Default: `null`
+
+### <a name="input_resource_types"></a> [resource\_types](#input\_resource\_types)
+
+Description: The ARM resource type and API version used for each resource this module deploys. Override an entry to pin a different API version.
+
+- `communication_email_services` - The Email Communication Service.
+- `authorization_locks` - The management lock.
+- `authorization_role_assignments` - The role assignments.
+- `communication_email_services_domains.communication_email_services_domains` - Each Email Communication Service Domain.
+- `communication_email_services_domains_sender_usernames.communication_email_services_domains_sender_usernames` - Each Email Communication Service Domain Sender Username.
+
+Type:
+
+```hcl
+object({
+    communication_email_services   = optional(string, "Microsoft.Communication/emailServices@2023-03-31")
+    authorization_locks            = optional(string, "Microsoft.Authorization/locks@2020-05-01")
+    authorization_role_assignments = optional(string, "Microsoft.Authorization/roleAssignments@2022-04-01")
+    communication_email_services_domains = optional(object({
+      communication_email_services_domains = optional(string)
+    }), {})
+    communication_email_services_domains_sender_usernames = optional(object({
+      communication_email_services_domains_sender_usernames = optional(string)
+    }), {})
+  })
+```
+
+Default: `{}`
+
+### <a name="input_retry"></a> [retry](#input\_retry)
+
+Description: Retry configuration applied to every supported AzAPI resource declared by the module and its applicable submodules. Defaults to `null` (no custom retry).
+
+- `error_message_regex`  - (Optional) A list of regex patterns matching error messages that trigger a retry.
+- `interval_seconds`     - (Optional) Initial interval between retries in seconds.
+- `max_interval_seconds` - (Optional) Maximum interval between retries in seconds.
+
+See <https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource#retry> for full semantics.
+
+Type:
+
+```hcl
+object({
+    error_message_regex  = optional(list(string))
+    interval_seconds     = optional(number)
+    max_interval_seconds = optional(number)
   })
 ```
 
@@ -148,21 +311,23 @@ Default: `null`
 
 Description: A map of role assignments to create on this resource. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time.
 
-- `role_definition_id_or_name` - The ID or name of the role definition to assign to the principal.
-- `principal_id` - The ID of the principal to assign the role to.
+Changing the principal, role definition, or delegated managed identity deletes and recreates the assignment with the same GUID. Access can be interrupted during replacement. Description and condition changes update the assignment in place.
+
+- `name` - (Optional) The name of the role assignment. If not specified, a GUID will be generated. Changing this forces the creation of a new resource.
+- `role_definition_id_or_name` - The ID or name of the role definition to assign to the principal. Changing the resolved role definition forces replacement.
+- `principal_id` - The ID of the principal to assign the role to. Changing this forces replacement.
 - `description` - The description of the role assignment.
-- `skip_service_principal_aad_check` - If set to true, skips the Azure Active Directory check for the service principal in the tenant. Defaults to false.
+- `skip_service_principal_aad_check` - Has no effect when the role assignment is created with AzAPI, and is retained for backwards compatibility.
 - `condition` - The condition which will be used to scope the role assignment.
 - `condition_version` - The version of the condition syntax. Valid values are '2.0'.
 - `delegated_managed_identity_resource_id` - The delegated Azure Resource Id which contains a Managed Identity. Changing this forces a new resource to be created.
 - `principal_type` - The type of the principal\_id. Possible values are `User`, `Group` and `ServicePrincipal`. Changing this forces a new resource to be created. It is necessary to explicitly set this attribute when creating role assignments if the principal creating the assignment is constrained by ABAC rules that filters on the PrincipalType attribute.
 
-> Note: only set `skip_service_principal_aad_check` to true if you are assigning a role to a service principal.
-
 Type:
 
 ```hcl
 map(object({
+    name                                   = optional(string, null)
     role_definition_id_or_name             = string
     principal_id                           = string
     description                            = optional(string, null)
@@ -184,17 +349,59 @@ Type: `map(string)`
 
 Default: `null`
 
+### <a name="input_timeouts"></a> [timeouts](#input\_timeouts)
+
+Description: Default per-operation timeouts applied to every supported AzAPI resource declared by the module and its applicable submodules. Defaults to `null` (provider defaults). Each value is a Go duration string (e.g. `30m`, `1h`).
+
+- `create` - (Optional) Timeout for create operations.
+- `read`   - (Optional) Timeout for read operations.
+- `update` - (Optional) Timeout for update operations.
+- `delete` - (Optional) Timeout for delete operations.
+
+Type:
+
+```hcl
+object({
+    create = optional(string)
+    read   = optional(string)
+    update = optional(string)
+    delete = optional(string)
+  })
+```
+
+Default: `null`
+
 ## Outputs
 
 The following outputs are exported:
+
+### <a name="output_domain_from_sender_domains"></a> [domain\_from\_sender\_domains](#output\_domain\_from\_sender\_domains)
+
+Description: A map of the `fromSenderDomain` values for the deployed Email Communication Service domains, keyed by the same keys as `var.email_communication_service_domains`.
+
+### <a name="output_domain_mail_from_sender_domains"></a> [domain\_mail\_from\_sender\_domains](#output\_domain\_mail\_from\_sender\_domains)
+
+Description: A map of the `mailFromSenderDomain` values for the deployed Email Communication Service domains, keyed by the same keys as `var.email_communication_service_domains`.
 
 ### <a name="output_domain_resource_ids"></a> [domain\_resource\_ids](#output\_domain\_resource\_ids)
 
 Description: A map of the resource IDs for the deployed Email Communication Service domains, keyed by the same keys as `var.email_communication_service_domains`.
 
-### <a name="output_resource"></a> [resource](#output\_resource)
+### <a name="output_domain_sender_username_resource_ids"></a> [domain\_sender\_username\_resource\_ids](#output\_domain\_sender\_username\_resource\_ids)
 
-Description: The resource of email communication service
+Description: A map of the resource IDs for the deployed Email Communication Service domain sender usernames, keyed by the same keys as `var.email_communication_service_domain_sender_usernames`.
+
+### <a name="output_domain_verification_records"></a> [domain\_verification\_records](#output\_domain\_verification\_records)
+
+Description: A map of the DNS verification records for the deployed Email Communication Service domains, keyed by the same keys as `var.email_communication_service_domains`.
+
+### <a name="output_domain_verification_states"></a> [domain\_verification\_states](#output\_domain\_verification\_states)
+
+Description: A map of the DNS verification states for the deployed Email Communication Service domains, keyed by the same keys as `var.email_communication_service_domains`.
+
+### <a name="output_name"></a> [name](#output\_name)
+
+Description: The name of the email communication service
 
 ### <a name="output_resource_id"></a> [resource\_id](#output\_resource\_id)
 
@@ -206,7 +413,25 @@ Description: The resource of email communication service in azurerm schema
 
 ## Modules
 
-No modules.
+The following Modules are called:
+
+### <a name="module_avm_interfaces"></a> [avm\_interfaces](#module\_avm\_interfaces)
+
+Source: Azure/avm-utl-interfaces/azure
+
+Version: 0.7.0
+
+### <a name="module_domain"></a> [domain](#module\_domain)
+
+Source: ./modules/domain
+
+Version:
+
+### <a name="module_domain_sender_username"></a> [domain\_sender\_username](#module\_domain\_sender\_username)
+
+Source: ./modules/domain-sender-username
+
+Version:
 
 <!-- markdownlint-disable-next-line MD041 -->
 ## Data Collection
