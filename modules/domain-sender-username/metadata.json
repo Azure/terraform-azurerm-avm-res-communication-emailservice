@@ -1,0 +1,7 @@
+{
+  "$schema": "https://raw.githubusercontent.com/Azure/azure-verified-modules-tools/main/src/Avm.Authoring/Resources/Schemas/v1/avm-module-metadata.schema.json",
+  "moduleDisplayName": "Email Communication Service Domain Sender Username",
+  "moduleDescription": "This submodule deploys a single `Microsoft.Communication/emailServices/domains/senderUsernames` resource into an existing Email Communication Service Domain.",
+  "canonicalType": "Microsoft.Communication/emailServices/domains/senderUsernames",
+  "telemetryIdPrefix": "46d3xtrf.res.4f8858d"
+}
