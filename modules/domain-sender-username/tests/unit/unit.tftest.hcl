@@ -4,10 +4,12 @@ mock_provider "azapi" {
       id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-test/providers/Microsoft.Communication/emailServices/ecs-test/domains/example.com/senderUsernames/donotreply"
     }
   }
+  mock_data "azapi_client_config" {
+    defaults = {
+      subscription_resource_id = "/subscriptions/00000000-0000-0000-0000-000000000000"
+    }
+  }
 }
-
-mock_provider "modtm" {}
-mock_provider "random" {}
 
 variables {
   name             = "donotreply"
@@ -27,6 +29,9 @@ run "sender_username_defaults" {
     condition     = azapi_resource.this.body.properties.username == "donotreply"
     error_message = "The `username` property should be derived from `var.name`."
   }
+  variables {
+    location = "eastus"
+  }
 }
 
 run "display_name_is_applied" {
@@ -34,6 +39,7 @@ run "display_name_is_applied" {
 
   variables {
     display_name = "Do Not Reply"
+    location     = "eastus"
   }
 
   assert {
