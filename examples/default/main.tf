@@ -2,8 +2,9 @@
 # This allows us to randomize the region for the resource group.
 module "regions" {
   source  = "Azure/avm-utl-regions/azurerm"
-  version = "0.9.3"
+  version = "0.13.0"
 
+  location         = var.location
   enable_telemetry = var.enable_telemetry
 }
 
@@ -33,6 +34,9 @@ resource "azapi_resource" "resource_group" {
 # Do not specify location here due to the randomization above.
 module "test" {
   source = "../../"
+  providers = {
+    azapi = azapi
+  }
 
   data_location = "United States"
   # source              = "Azure/avm-res-communication-emailservice"

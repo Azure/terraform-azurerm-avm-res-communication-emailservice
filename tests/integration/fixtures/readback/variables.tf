@@ -1,7 +1,7 @@
-variable "parent_id" {
+variable "explicit_name" {
   type = string
 }
 
-variable "explicit_name" {
+variable "parent_id" {
   type = string
 }

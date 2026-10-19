@@ -32,6 +32,7 @@ module "domain" {
   for_each = var.email_communication_service_domains
 
   domain_management                = each.value.domain_management
+  location                         = var.location
   name                             = each.value.name
   parent_id                        = azapi_resource.email_communication_service.id
   enable_telemetry                 = var.enable_telemetry
@@ -47,6 +48,7 @@ module "domain_sender_username" {
   source   = "./modules/domain-sender-username"
   for_each = var.email_communication_service_domain_sender_usernames
 
+  location            = var.location
   name                = each.value.name
   parent_id           = module.domain[each.value.email_communication_service_domain_name_key].resource_id
   display_name        = each.value.display_name

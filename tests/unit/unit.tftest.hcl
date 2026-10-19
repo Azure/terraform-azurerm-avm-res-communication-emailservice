@@ -4,9 +4,13 @@ mock_provider "azapi" {
       id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-test/providers/Microsoft.Communication/emailServices/ecs-test"
     }
   }
+  mock_data "azapi_client_config" {
+    defaults = {
+      subscription_resource_id = "/subscriptions/00000000-0000-0000-0000-000000000000"
+    }
+  }
 }
 
-mock_provider "modtm" {}
 mock_provider "random" {
   mock_resource "random_uuid" {
     defaults = {
@@ -64,6 +68,10 @@ run "domain_resource_ids_output" {
     condition     = output.domain_resource_ids["primary"] == "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-test/providers/Microsoft.Communication/emailServices/ecs-test/domains/example.com"
     error_message = "domain_resource_ids should expose the domain resource ID keyed by the same key used in var.email_communication_service_domains."
   }
+  providers = {
+    azapi  = azapi
+    random = random
+  }
 }
 
 run "domain_tags_inherit_from_service" {
@@ -72,6 +80,10 @@ run "domain_tags_inherit_from_service" {
   assert {
     condition     = local.domain_tags["primary"] == tomap({ env = "Prod" })
     error_message = "A domain without its own tags should inherit the tags of the Email Communication Service."
+  }
+  providers = {
+    azapi  = azapi
+    random = random
   }
 }
 
@@ -82,6 +94,10 @@ run "domain_tags_override_replaces_service_tags" {
     condition     = local.domain_tags["secondary"] == tomap({ env = "Test" })
     error_message = "A domain with its own tags should replace, not merge with, the tags of the Email Communication Service."
   }
+  providers = {
+    azapi  = azapi
+    random = random
+  }
 }
 
 run "lock_is_not_created_by_default" {
@@ -90,6 +106,10 @@ run "lock_is_not_created_by_default" {
   assert {
     condition     = length(azapi_resource.lock) == 0
     error_message = "No management lock should be created when var.lock is null."
+  }
+  providers = {
+    azapi  = azapi
+    random = random
   }
 }
 
@@ -111,6 +131,10 @@ run "lock_is_created_when_requested" {
     condition     = azapi_resource.lock["lock"].type == "Microsoft.Authorization/locks@2020-05-01"
     error_message = "The lock should be created with the Microsoft.Authorization/locks resource type."
   }
+  providers = {
+    azapi  = azapi
+    random = random
+  }
 }
 
 run "resource_types_can_be_overridden" {
@@ -126,6 +150,10 @@ run "resource_types_can_be_overridden" {
     condition     = azapi_resource.email_communication_service.type == "Microsoft.Communication/emailServices@2023-04-01-preview"
     error_message = "var.resource_types should control the API version used for the Email Communication Service."
   }
+  providers = {
+    azapi  = azapi
+    random = random
+  }
 }
 
 run "resource_group_name_is_parsed_from_parent_id" {
@@ -134,6 +162,10 @@ run "resource_group_name_is_parsed_from_parent_id" {
   assert {
     condition     = local.azurerm_resource_body.resource_group_name == "rg-test"
     error_message = "The resource group name exposed for AzureRM schema compatibility should be parsed from var.parent_id."
+  }
+  providers = {
+    azapi  = azapi
+    random = random
   }
 }
 
@@ -145,6 +177,10 @@ run "parent_id_rejects_a_non_resource_group_id" {
   }
 
   expect_failures = [var.parent_id]
+  providers = {
+    azapi  = azapi
+    random = random
+  }
 }
 
 run "immutable_references_and_role_names" {
@@ -196,5 +232,9 @@ run "immutable_references_and_role_names" {
   assert {
     condition     = azapi_resource.role_assignment["explicit"].name == "22222222-2222-4222-8222-222222222222"
     error_message = "A caller-supplied role assignment GUID must be preserved."
+  }
+  providers = {
+    azapi  = azapi
+    random = random
   }
 }

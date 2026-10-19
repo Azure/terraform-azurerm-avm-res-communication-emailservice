@@ -9,8 +9,9 @@ This deploys the Email Communication Service.
 # This allows us to randomize the region for the resource group.
 module "regions" {
   source  = "Azure/avm-utl-regions/azurerm"
-  version = "0.9.3"
+  version = "0.13.0"
 
+  location         = var.location
   enable_telemetry = var.enable_telemetry
 }
 
@@ -40,6 +41,9 @@ resource "azapi_resource" "resource_group" {
 # Do not specify location here due to the randomization above.
 module "test" {
   source = "../../"
+  providers = {
+    azapi = azapi
+  }
 
   data_location = "United States"
   # source              = "Azure/avm-res-communication-emailservice"
@@ -122,6 +126,14 @@ Type: `bool`
 
 Default: `true`
 
+### <a name="input_location"></a> [location](#input\_location)
+
+Description: The Azure region for this module's resources or telemetry deployment.
+
+Type: `string`
+
+Default: `"eastus"`
+
 ## Outputs
 
 No outputs.
@@ -134,7 +146,7 @@ The following Modules are called:
 
 Source: Azure/avm-utl-regions/azurerm
 
-Version: 0.9.3
+Version: 0.13.0
 
 ### <a name="module_test"></a> [test](#module\_test)
 

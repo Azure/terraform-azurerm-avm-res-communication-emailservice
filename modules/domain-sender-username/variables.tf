@@ -1,3 +1,9 @@
+variable "location" {
+  type        = string
+  description = "The Azure region for this module's resources or telemetry deployment."
+  nullable    = false
+}
+
 variable "name" {
   type        = string
   description = "(Required) The name of the Email Communication Service Domain Sender Username resource. This value is also used as the `username` property. Changing this forces a new resource to be created."

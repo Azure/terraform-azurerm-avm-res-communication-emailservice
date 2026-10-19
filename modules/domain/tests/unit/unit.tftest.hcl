@@ -10,10 +10,12 @@ mock_provider "azapi" {
       }
     }
   }
+  mock_data "azapi_client_config" {
+    defaults = {
+      subscription_resource_id = "/subscriptions/00000000-0000-0000-0000-000000000000"
+    }
+  }
 }
-
-mock_provider "modtm" {}
-mock_provider "random" {}
 
 variables {
   name              = "example.com"
@@ -39,6 +41,9 @@ run "domain_defaults" {
     condition     = azapi_resource.this.body.properties.userEngagementTracking == "Disabled"
     error_message = "User engagement tracking should be disabled by default."
   }
+  variables {
+    location = "eastus"
+  }
 }
 
 run "user_engagement_tracking_can_be_enabled" {
@@ -46,6 +51,7 @@ run "user_engagement_tracking_can_be_enabled" {
 
   variables {
     user_engagement_tracking_enabled = true
+    location                         = "eastus"
   }
 
   assert {
@@ -61,6 +67,7 @@ run "tags_are_applied" {
     tags = {
       env = "Test"
     }
+    location = "eastus"
   }
 
   assert {
@@ -75,5 +82,8 @@ run "domain_management_replacement_reference" {
   assert {
     condition     = azapi_resource.this.replace_triggers_refs == tolist(["properties.domainManagement"])
     error_message = "Domain replacement references must start at properties, relative to body; body.properties.domainManagement selects nothing."
+  }
+  variables {
+    location = "eastus"
   }
 }
