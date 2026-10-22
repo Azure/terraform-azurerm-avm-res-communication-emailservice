@@ -41,9 +41,6 @@ resource "azapi_resource" "resource_group" {
 # Do not specify location here due to the randomization above.
 module "test" {
   source = "../../"
-  providers = {
-    azapi = azapi
-  }
 
   data_location = "United States"
   # source              = "Azure/avm-res-communication-emailservice"
