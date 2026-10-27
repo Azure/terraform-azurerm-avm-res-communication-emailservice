@@ -122,7 +122,7 @@ run "baseline" {
 
   assert {
     condition     = azapi_resource.role_assignment["generated"].name == "11111111-1111-4111-8111-111111111111" && azapi_resource.role_assignment["explicit"].name == "22222222-2222-4222-8222-222222222222"
-    error_message = "The baseline must use the cached interfaces module's generated UUID and preserve the caller-supplied GUID."
+    error_message = "The baseline must use the cached interfaces module's generated UUID and preserve the caller-supplied GUID. Got generated name '${azapi_resource.role_assignment["generated"].name}' and explicit name '${azapi_resource.role_assignment["explicit"].name}'."
   }
 }
 
