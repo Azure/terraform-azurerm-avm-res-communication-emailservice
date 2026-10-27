@@ -16,8 +16,6 @@ mock_provider "azapi" {
   }
 }
 
-mock_provider "random" {}
-
 provider "azapi" {
   alias = "offline"
 
