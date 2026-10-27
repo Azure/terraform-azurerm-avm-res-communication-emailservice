@@ -87,6 +87,10 @@ variables {
 
 run "baseline" {
   command = apply
+  providers = {
+    azapi  = azapi
+    random = random
+  }
 
   override_resource {
     target = azapi_resource.role_assignment["generated"]
