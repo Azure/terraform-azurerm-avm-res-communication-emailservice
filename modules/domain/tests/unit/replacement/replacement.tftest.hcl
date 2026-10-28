@@ -16,8 +16,6 @@ mock_provider "azapi" {
   }
 }
 
-mock_provider "random" {}
-
 provider "azapi" {
   alias = "offline"
 
@@ -46,6 +44,7 @@ provider "azapi" {
 variables {
   name              = "example.com"
   domain_management = "CustomerManaged"
+  location          = "eastus"
   parent_id         = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-test/providers/Microsoft.Communication/emailServices/ecs-test"
   enable_telemetry  = false
 }
