@@ -32,11 +32,11 @@ module "domain" {
   for_each = var.email_communication_service_domains
 
   domain_management                = each.value.domain_management
-  location                         = var.location
   name                             = each.value.name
   parent_id                        = azapi_resource.email_communication_service.id
   enable_telemetry                 = var.enable_telemetry
   ignore_body_changes              = var.ignore_body_changes.communication_email_services_domains
+  location                         = var.location
   resource_types                   = var.resource_types.communication_email_services_domains
   retry                            = var.retry
   tags                             = local.domain_tags[each.key]
@@ -48,12 +48,12 @@ module "domain_sender_username" {
   source   = "./modules/domain-sender-username"
   for_each = var.email_communication_service_domain_sender_usernames
 
-  location            = var.location
   name                = each.value.name
   parent_id           = module.domain[each.value.email_communication_service_domain_name_key].resource_id
   display_name        = each.value.display_name
   enable_telemetry    = var.enable_telemetry
   ignore_body_changes = var.ignore_body_changes.communication_email_services_domains_sender_usernames
+  location            = var.location
   resource_types      = var.resource_types.communication_email_services_domains_sender_usernames
   retry               = var.retry
   timeouts            = var.timeouts
